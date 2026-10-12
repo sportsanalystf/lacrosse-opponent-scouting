@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JMU Offense Scouting Dashboard - UVA Lacrosse</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 30px;
+            border-bottom: 2px solid #475569;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2.2em;
+            margin-bottom: 5px;
+            color: #e0e7ff;
+        }
+
+        .header-subtitle {
+            color: #94a3b8;
+            font-size: 0.95em;
+        }
+
+        .filter-bar {
+            background-color: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .filter-label {
+            color: #cbd5e1;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .pill-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .pill {
+            background-color: #334155;
+            border: 1px solid #475569;
+            color: #e2e8f0;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .pill:hover {
+            background-color: #475569;
+            border-color: #64748b;
+        }
+
+        .pill.active {
+            background-color: #3b82f6;
+            border-color: #2563eb;
+            color: #ffffff;
+        }
+
+        select {
+            background-color: #1e293b;
+            color: #f8fafc;
+            border: 1px solid #475569;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            cursor: pointer;
+        }
+
+        select option {
+            background-color: #1e293b;
+            color: #f8fafc;
+        }
+
+        .tab-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #475569;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            padding: 12px 16px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-button:hover {
+            color: #cbd5e1;
+        }
+
+        .tab-button.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background-color: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.2em;
+            font-weight: 700;
+            color: #3b82f6;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .chart-container {
+            background-color: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            position: relative;
+            height: 350px;
+        }
+
+        .chart-container-large {
+            height: 450px;
+        }
+
+        .chart-container-small {
+            height: 300px;
+        }
+
+        .chart-title {
+            color: #e2e8f0;
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 0.95em;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 25px;
+        }
+
+        .clip-selector-box {
+            background-color: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .clip-detail-box {
+            background-color: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 25px;
+        }
+
+        .detail-row {
+            margin-bottom: 18px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .detail-label {
+            color: #94a3b8;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .detail-value {
+            color: #e2e8f0;
+            font-size: 1em;
+            line-height: 1.5;
+        }
+
+        .detail-value.critical {
+            color: #fca5a5;
+            font-weight: 600;
+        }
+
+        .detail-value.positive {
+            color: #86efac;
+            font-weight: 600;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        thead {
+            background-color: #0f172a;
+            border-bottom: 2px solid #475569;
+        }
+
+        th {
+            color: #cbd5e1;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            color: #e2e8f0;
+            padding: 12px;
+            border-bottom: 1px solid #334155;
+        }
+
+        tbody tr:hover {
+            background-color: #334155;
+            cursor: pointer;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-penalty {
+            background-color: #7c2d12;
+            color: #fed7aa;
+        }
+
+        .badge-transition {
+            background-color: #1e40af;
+            color: #bfdbfe;
+        }
+
+        .badge-settled {
+            background-color: #365314;
+            color: #bfef45;
+        }
+
+        .badge-goal {
+            background-color: #065f46;
+            color: #a7f3d0;
+        }
+
+        .badge-shot {
+            background-color: #1e3a8a;
+            color: #93c5fd;
+        }
+
+        .badge-turnover {
+            background-color: #7f1d1d;
+            color: #fca5a5;
+        }
+
+        svg {
+            width: 100%;
+            height: auto;
+        }
+
+        .field-diagram {
+            background-color: #0f172a;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 25px;
+        }
+
+        .formation-box {
+            background-color: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .recommendation-card {
+            background-color: #1e293b;
+            border-left: 4px solid #3b82f6;
+            border-radius: 0 8px 8px 0;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .recommendation-card.must-execute {
+            border-left-color: #ef4444;
+        }
+
+        .recommendation-card.strong {
+            border-left-color: #f59e0b;
+        }
+
+        .recommendation-card.situational {
+            border-left-color: #8b5cf6;
+        }
+
+        .rec-title {
+            color: #e2e8f0;
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .rec-type {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.75em;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .rec-type.must-execute {
+            background-color: #7f1d1d;
+            color: #fca5a5;
+        }
+
+        .rec-type.strong {
+            background-color: #78350f;
+            color: #fed7aa;
+        }
+
+        .rec-type.situational {
+            background-color: #4c1d95;
+            color: #d8b4fe;
+        }
+
+        .rec-content {
+            color: #cbd5e1;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            color: #e0e7ff;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #475569;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛡️ JMU Offense Scouting Dashboard</h1>
+            <p class="header-subtitle">UVA Lacrosse | Defensive Game Plan & Analysis | 17-Clip Breakdown</p>
+        </header>
+
+        <div class="filter-bar">
+            <span class="filter-label">Category Filter:</span>
+            <div class="pill-group" id="categoryPills"></div>
+            <span class="filter-label" style="margin-left: 20px;">Select Clip:</span>
+            <select id="clipSelector" onchange="selectClip()">
+                <option value="">-- Choose a clip --</option>
+            </select>
+        </div>
+
+        <div class="tab-nav">
+            <button class="tab-button active" onclick="switchTab('summary', this)">Summary</button>
+            <button class="tab-button" onclick="switchTab('clipDetail', this)">Clip Detail</button>
+            <button class="tab-button" onclick="switchTab('formation', this)">Formations & Movement</button>
+            <button class="tab-button" onclick="switchTab('playType', this)">Play Type Analysis</button>
+            <button class="tab-button" onclick="switchTab('shots', this)">Shot Analysis</button>
+            <button class="tab-button" onclick="switchTab('transition', this)">Transition Analysis</button>
+            <button class="tab-button" onclick="switchTab('allClips', this)">All Clips Table</button>
+            <button class="tab-button" onclick="switchTab('counter', this)">Counter Strategy</button>
+        </div>
+
+        <!-- SUMMARY TAB -->
+        <div id="summary" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalClips">17</div>
+                    <div class="stat-label">Total Clips Analyzed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="goalsScore">8</div>
+                    <div class="stat-label">Goals / Direct Scores</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="shotsOnCage">12</div>
+                    <div class="stat-label">Shots on Cage</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="turnovers">7</div>
+                    <div class="stat-label">Turnovers / Missed</div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="chart-container">
+                    <div class="chart-title">Offensive Category Distribution</div>
+                    <canvas id="categoryDistChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Outcome by Category</div>
+                    <canvas id="outcomeByCategory"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container chart-container-small">
+                <div class="chart-title">Play Type Frequency (Top 8)</div>
+                <canvas id="playTypeFreqChart"></canvas>
+            </div>
+
+            <div class="formation-box">
+                <div class="section-title">Key Offensive Insights</div>
+                <div style="color: #cbd5e1; line-height: 1.8;">
+                    <p style="margin-bottom: 12px;"><strong style="color: #e2e8f0;">JMU's Primary Strength: Settled Early Offense</strong> — 4 of 17 clips (24%) focus on early/settled plays where JMU gets to their designated spots. They emphasize positioning and spacing over improvisation. UVA must tighten off-ball positioning and rotations.</p>
+                    <p style="margin-bottom: 12px;"><strong style="color: #e2e8f0;">Zone Offense with Roamer:</strong> 2 clips show a zone look with a roaming attacker. This is a core offensive concept. The roamer creates mismatches and disrupts standard defensive rotations.</p>
+                    <p style="margin-bottom: 12px;"><strong style="color: #e2e8f0;">Named Plays:</strong> Pizza Pie Rip and Texas Action indicate a coached, structured playbook. Players know their assignments and cutting patterns. UVA defenders must study these specific actions.</p>
+                    <p style="margin-bottom: 12px;"><strong style="color: #e2e8f0;">Special Teams Readiness:</strong> JMU has dedicated penalty kill offense (2 clips). They don't slow down with personnel disadvantage.</p>
+                    <p><strong style="color: #e2e8f0;">Pace Variance:</strong> Balance of transition (2 clips), green light/fast break (1 clip), and broken play (1 clip) shows JMU can attack at multiple speeds. They push tempo when opportunities exist.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CLIP DETAIL TAB -->
+        <div id="clipDetail" class="tab-content">
+            <div class="clip-selector-box">
+                <label class="filter-label">Select Clip for Detailed Analysis:</label>
+                <select id="clipDetailSelector" onchange="showClipDetail()" style="width: 100%; padding: 10px; margin-top: 10px;">
+                    <option value="">-- Choose a clip --</option>
+                </select>
+            </div>
+            <div id="clipDetailContent"></div>
+        </div>
+
+        <!-- FORMATIONS & MOVEMENT TAB -->
+        <div id="formation" class="tab-content">
+            <div class="section-title">JMU Common Offensive Formations</div>
+
+            <div class="formation-box">
+                <h3 style="color: #e2e8f0; margin-bottom: 15px;">Early Offense - Standard Spacing</h3>
+                <div class="field-diagram">
+                    <svg viewBox="0 0 100 130" style="background-color: #0d4a2e;">
+                        <!-- Field lines -->
+                        <line x1="10" y1="10" x2="90" y2="10" stroke="#cbd5e1" stroke-width="0.5"/>
+                        <line x1="10" y1="10" x2="10" y2="120" stroke="#cbd5e1" stroke-width="0.5"/>
+                        <line x1="90" y1="10" x2="90" y2="120" stroke="#cbd5e1" stroke-width="0.5"/>
+                        <line x1="10" y1="120" x2="90" y2="120" stroke="#cbd5e1" stroke-width="0.5"/>
+
+                        <!-- Centerline -->
+                        <line x1="10" y1="65" x2="90" y2="65" stroke="#cbd5e1" stroke-width="0.5" stroke-dasharray="2,2"/>
+
+                        <!-- Crease circle (defending goal) -->
+                        <circle cx="85" cy="65" r="6" fill="none" stroke="#cbd5e1" stroke-width="0.5"/>
+                        <line x1="85" y1="71" x2="85" y2="80" stroke="#cbd5e1" stroke-width="0.5"/>
+
+                        <!-- 8m arc (attacking) -->
+                        <path d="M 25 45 Q 25 35, 35 35 Q 45 35, 45 45" fill="none" stroke="#cbd5e1" stroke-width="0.5"/>
+
+                        <!-- Restraining line -->
+                        <line x1="15" y1="30" x2="15" y2="100" stroke="#cbd5e1" stroke-width="0.5" opacity="0.5"/>
+
+                        <!-- Player positions (Early O) -->
+                        <circle cx="30" cy="50" r="1.5" fill="#3b82f6"/><text x="30" y="42" font-size="6" fill="#3b82f6" text-anchor="middle">A1</text>
+                        <circle cx="50" cy="45" r="1.5" fill="#3b82f6"/><text x="50" y="37" font-size="6" fill="#3b82f6" text-anchor="middle">A2</text>
+                        <circle cx="70" cy="50" r="1.5" fill="#3b82f6"/><text x="70" y="42" font-size="6" fill="#3b82f6" text-anchor="middle">A3</text>
+                        <circle cx="40" cy="75" r="1.5" fill="#3b82f6"/><text x="40" y="85" font-size="6" fill="#3b82f6" text-anchor="middle">A4</text>
+                        <circle cx="60" cy="75" r="1.5" fill="#3b82f6"/><text x="60" y="85" font-size="6" fill="#3b82f6" text-anchor="middle">A5</text>
+                        <circle cx="50" cy="95" r="1.5" fill="#3b82f6"/><text x="50" y="105" font-size="6" fill="#3b82f6" text-anchor="middle">A6</text>
+
+                        <!-- Goalie -->
+                        <circle cx="85" cy="65" r="1" fill="#10b981"/>
+
+                        <!-- Movement arrows -->
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto">
+                                <polygon points="0 0, 10 3, 0 6" fill="#fbbf24"/>
+                            </marker>
+                        </defs>
+                        <path d="M 30 50 Q 40 55, 50 60" stroke="#fbbf24" stroke-width="0.7" fill="none" marker-end="url(#arrowhead)"/>
+                    </svg>
+                </div>
+                <p style="color: #cbd5e1; margin-top: 12px; font-size: 0.9em;">JMU structures early offense with wide spacing (A1-A3 spread along top). A4-A5 in midfield support ball movement. A6 near X focuses on transition. This allows multiple passing lanes and shot attempts from various spots.</p>
+            </div>
+
+            <div class="formation-box">
+                <h3 style="color: #e2e8f0; margin-bottom: 15px;">Zone Offense with Roamer</h3>
+                <div class="field-diagram">
+                    <svg viewBox="0 0 100 130" style="background-color: #0d4a2e;">
+                        <!-- Field lines -->
+                        <line x1="10" y1="10" x2="90" y2="10" stroke="#cbd5e1" stroke-width="0.5"/>
+                        <line x1="10" y1="10" x2="10" y2="120" stroke="#cbd5e1" stroke-width="0.5"/>
+                        <line x1="90" y1="10" x2="90" y2="120" stroke="#cbd5e1" stroke-width="0.5"/>
+                        <line x1="10" y1="120" x2="90" y2="120" stroke="#cbd5e1" stroke-width="0.5"/>
+                        <line x1="10" y1="65" x2="90" y2="65" stroke="#cbd5e1" stroke-width="0.5" stroke-dasharray="2,2"/>
+                        <circle cx="85" cy="65" r="6" fill="none" stroke="#cbd5e1" stroke-width="0.5"/>
+                        <line x1="85" y1="71" x2="85" y2="80" stroke="#cbd5e1" stroke-width="0.5"/>
+
+                        <!-- Zone defensive look -->
+                        <text x="50" y="55" font-size="7" fill="#94a3b8" text-anchor="middle" opacity="0.6">(vs Zone D)</text>
+
+                        <!-- Static zone players -->
+                        <circle cx="35" cy="55" r="1.5" fill="#8b5cf6" opacity="0.6"/><text x="35" y="47" font-size="6" fill="#8b5cf6">Z1</text>
+                        <circle cx="65" cy="55" r="1.5" fill="#8b5cf6" opacity="0.6"/><text x="65" y="47" font-size="6" fill="#8b5cf6">Z2</text>
+                        <circle cx="50" cy="85" r="1.5" fill="#8b5cf6" opacity="0.6"/><text x="50" y="95" font-size="6" fill="#8b5cf6">Z3</text>
+
+                        <!-- Roamer/Mismatch -->
+                        <circle cx="55" cy="35" r="2" fill="#f59e0b"/><text x="55" y="25" font-size="6" fill="#f59e0b" font-weight="bold">ROAMER</text>
+                        <circle cx="40" cy="75" r="1.5" fill="#3b82f6"/><text x="40" y="85" font-size="6" fill="#3b82f6">A4</text>
+                        <circle cx="70" cy="75" r="1.5" fill="#3b82f6"/><text x="70" y="85" font-size="6" fill="#3b82f6">A5</text>
+
+                        <!-- Goalie -->
+                        <circle cx="85" cy="65" r="1" fill="#10b981"/>
+
+                        <!-- Roamer movement arrow -->
+                        <defs>
+                            <marker id="arrowhead2" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto">
+                                <polygon points="0 0, 10 3, 0 6" fill="#f59e0b"/>
+                            </marker>
+                        </defs>
+                        <path d="M 55 35 Q 60 50, 65 65" stroke="#f59e0b" stroke-width="1" fill="none" marker-end="url(#arrowhead2)" stroke-dasharray="2,2"/>
+                    </svg>
+                </div>
+                <p style="color: #cbd5e1; margin-top: 12px; font-size: 0.9em;">The roamer (shown in orange) creates mismatches by attacking open areas in the zone. Typically starts high, then cuts into gaps. Static zone players (purple) move laterally but roamer has freedom to create 1v1 situations. UVA must have a designated roamer defender with good communication.</p>
+            </div>
+
+            <div class="formation-box">
+                <h3 style="color: #e2e8f0; margin-bottom: 15px;">Pizza Pie Rip Formation</h3>
+                <div class="field-diagram">
+                    <svg viewBox="0 0 100 130" style="background-color: #0d4a2e;">
+                        <!-- Field lines -->
+                        <line x1="10" y1="10" x2="90" y2="10" stroke="#cbd5e1" stroke-width="0.5"/>
+                        <line x1="10" y1="10" x2="10" y2="120" stroke="#cbd5e1" stroke-width="0.5"/>
+                        <line x1="90" y1="10" x2="90" y2="120" stroke="#cbd5e1" stroke-width="0.5"/>
+                        <line x1="10" y1="120" x2="90" y2="120" stroke="#cbd5e1" stroke-width="0.5"/>
+                        <line x1="10" y1="65" x2="90" y2="65" stroke="#cbd5e1" stroke-width="0.5" stroke-dasharray="2,2"/>
+                        <circle cx="85" cy="65" r="6" fill="none" stroke="#cbd5e1" stroke-width="0.5"/>
+                        <line x1="85" y1="71" x2="85" y2="80" stroke="#cbd5e1" stroke-width="0.5"/>
+
+                        <!-- Crease circle -->
+                        <path d="M 20 35 Q 20 25, 30 25 Q 40 25, 40 35" fill="none" stroke="#cbd5e1" stroke-width="0.5"/>
+
+                        <!-- Pizza Pie - fan/pie arrangement -->
+                        <circle cx="35" cy="50" r="1.5" fill="#ef4444"/><text x="35" y="42" font-size="6" fill="#ef4444">P1</text>
+                        <circle cx="55" cy="40" r="1.5" fill="#ef4444"/><text x="55" y="32" font-size="6" fill="#ef4444">P2</text>
+                        <circle cx="65" cy="60" r="1.5" fill="#ef4444"/><text x="65" y="68" font-size="6" fill="#ef4444">P3</text>
+                        <circle cx="50" cy="80" r="1.5" fill="#ef4444"/><text x="50" y="88" font-size="6" fill="#ef4444">P4</text>
+                        <circle cx="35" cy="70" r="1.5" fill="#ef4444"/><text x="35" y="78" font-size="6" fill="#ef4444">P5</text>
+
+                        <!-- Crease attacker -->
+                        <circle cx="75" cy="50" r="2" fill="#fbbf24"/><text x="75" y="42" font-size="6" fill="#fbbf24" font-weight="bold">RIP</text>
+
+                        <!-- Goalie -->
+                        <circle cx="85" cy="65" r="1" fill="#10b981"/>
+
+                        <!-- Ball movement pattern -->
+                        <defs>
+                            <marker id="arrowhead3" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto">
+                                <polygon points="0 0, 10 3, 0 6" fill="#fbbf24"/>
+                            </marker>
+                        </defs>
+                        <path d="M 35 50 Q 45 45, 55 40" stroke="#fbbf24" stroke-width="0.7" fill="none" marker-end="url(#arrowhead3)"/>
+                        <path d="M 55 40 Q 60 50, 65 60" stroke="#fbbf24" stroke-width="0.7" fill="none" marker-end="url(#arrowhead3)"/>
+                    </svg>
+                </div>
+                <p style="color: #cbd5e1; margin-top: 12px; font-size: 0.9em;">"Pizza Pie" spreads 5 attackers in a fan/pie formation around the box. One attacker positions for a rip/direct shot (RIP in yellow). Quick ball movement around the pie creates scoring chances from inside the 8m. Rip shooter waits for setup, then attacks with a hard shot.</p>
+            </div>
+
+            <div class="formation-box">
+                <h3 style="color: #e2e8f0; margin-bottom: 15px;">Texas Action / Screen Play</h3>
+                <p style="color: #cbd5e1; margin-bottom: 12px; font-size: 0.9em;">Texas Action is a pick/screen play where one attacker sets a screen for a ballcarrier. The ballcarrier curls off the screen while the screener may slip to the crease or roll to open space. This creates 2v2 advantages and forces defensive rotations. UVA defenders must communicate screens early and fight through/switch on Texas actions.</p>
+            </div>
+        </div>
+
+        <!-- PLAY TYPE ANALYSIS TAB -->
+        <div id="playType" class="tab-content">
+            <div class="section-title">Offensive Play Type Breakdown</div>
+
+            <div class="chart-container chart-container-large">
+                <div class="chart-title">Play Type Success Rate (Goals + Shots vs Turnovers)</div>
+                <canvas id="playTypeSuccessChart"></canvas>
+            </div>
+
+            <div class="grid-2">
+                <div class="formation-box">
+                    <h3 style="color: #e2e8f0; margin-bottom: 15px;">Early Offense</h3>
+                    <div style="color: #cbd5e1; font-size: 0.9em; line-height: 1.6;">
+                        <p><strong style="color: #e2e8f0;">Frequency:</strong> 4 clips (24%)</p>
+                        <p><strong style="color: #e2e8f0;">Situation:</strong> Settled half-court, controlled tempo</p>
+                        <p><strong style="color: #e2e8f0;">Goal:</strong> Gets JMU to designated spots; systematic ball movement</p>
+                        <p><strong style="color: #e2e8f0;">Success Rate:</strong> 75% (3 goals/shots, 1 turnover)</p>
+                        <p style="margin-top: 12px;"><strong style="color: #fbbf24;">Defensive Counter:</strong> Tight off-ball positioning, high-pressure rotations, deny space at designated spots</p>
+                    </div>
+                </div>
+
+                <div class="formation-box">
+                    <h3 style="color: #e2e8f0; margin-bottom: 15px;">Zone with Roamer</h3>
+                    <div style="color: #cbd5e1; font-size: 0.9em; line-height: 1.6;">
+                        <p><strong style="color: #e2e8f0;">Frequency:</strong> 2 clips (12%)</p>
+                        <p><strong style="color: #e2e8f0;">Situation:</strong> vs Zone defensive look</p>
+                        <p><strong style="color: #e2e8f0;">Goal:</strong> Create mismatches; free roamer for 1v1</p>
+                        <p><strong style="color: #e2e8f0;">Success Rate:</strong> 100% (2 goals)</p>
+                        <p style="margin-top: 12px;"><strong style="color: #fbbf24;">Defensive Counter:</strong> Roamer awareness; designate roamer defender; keep zone compact</p>
+                    </div>
+                </div>
+
+                <div class="formation-box">
+                    <h3 style="color: #e2e8f0; margin-bottom: 15px;">Transition Offense</h3>
+                    <div style="color: #cbd5e1; font-size: 0.9em; line-height: 1.6;">
+                        <p><strong style="color: #e2e8f0;">Frequency:</strong> 2 clips (12%)</p>
+                        <p><strong style="color: #e2e8f0;">Situation:</strong> Fast break, unsettled</p>
+                        <p><strong style="color: #e2e8f0;">Goal:</strong> Outnumber defenders before settled</p>
+                        <p><strong style="color: #e2e8f0;">Success Rate:</strong> 50% (1 goal, 1 turnover)</p>
+                        <p style="margin-top: 12px;"><strong style="color: #fbbf24;">Defensive Counter:</strong> Outlet pressure; transition defense depth; numerical advantage back</p>
+                    </div>
+                </div>
+
+                <div class="formation-box">
+                    <h3 style="color: #e2e8f0; margin-bottom: 15px;">Penalty Kill</h3>
+                    <div style="color: #cbd5e1; font-size: 0.9em; line-height: 1.6;">
+                        <p><strong style="color: #e2e8f0;">Frequency:</strong> 2 clips (12%)</p>
+                        <p><strong style="color: #e2e8f0;">Situation:</strong> Extra-man down (6v5)</p>
+                        <p><strong style="color: #e2e8f0;">Goal:</strong> Clear or kill time</p>
+                        <p><strong style="color: #e2e8f0;">Success Rate:</strong> 50% (1 clear, 1 turnover)</p>
+                        <p style="margin-top: 12px;"><strong style="color: #fbbf24;">Defensive Counter:</strong> Maintain intensity down-man; high-pressure clears; force quick decisions</p>
+                    </div>
+                </div>
+
+                <div class="formation-box">
+                    <h3 style="color: #e2e8f0; margin-bottom: 15px;">Pizza Pie & Texas</h3>
+                    <div style="color: #cbd5e1; font-size: 0.9em; line-height: 1.6;">
+                        <p><strong style="color: #e2e8f0;">Frequency:</strong> 2 clips (12%)</p>
+                        <p><strong style="color: #e2e8f0;">Situation:</strong> Named plays, designed sets</p>
+                        <p><strong style="color: #e2e8f0;">Goal:</strong> Screen/pick creation, crease shots</p>
+                        <p><strong style="color: #e2e8f0;">Success Rate:</strong> 100% (2 goals)</p>
+                        <p style="margin-top: 12px;"><strong style="color: #fbbf24;">Defensive Counter:</strong> Fight through screens; switch/communicate picks; deny crease</p>
+                    </div>
+                </div>
+
+                <div class="formation-box">
+                    <h3 style="color: #e2e8f0; margin-bottom: 15px;">Broken Play & Green Light</h3>
+                    <div style="color: #cbd5e1; font-size: 0.9em; line-height: 1.6;">
+                        <p><strong style="color: #e2e8f0;">Frequency:</strong> 2 clips (12%)</p>
+                        <p><strong style="color: #e2e8f0;">Situation:</strong> Improvisation & fast breaks</p>
+                        <p><strong style="color: #e2e8f0;">Goal:</strong> Individual skill, quick shots</p>
+                        <p><strong style="color: #e2e8f0;">Success Rate:</strong> 50% (1 shot, 1 turnover)</p>
+                        <p style="margin-top: 12px;"><strong style="color: #fbbf24;">Defensive Counter:</strong> Stay disciplined; don't foul on broken plays; reset quickly</p>
+                    </div>
+                </div>
+
+                <div class="formation-box">
+                    <h3 style="color: #e2e8f0; margin-bottom: 15px;">8-Meter / Free Position</h3>
+                    <div style="color: #cbd5e1; font-size: 0.9em; line-height: 1.6;">
+                        <p><strong style="color: #e2e8f0;">Frequency:</strong> 2 clips (12%)</p>
+                        <p><strong style="color: #e2e8f0;">Situation:</strong> Set pieces from free positions</p>
+                        <p><strong style="color: #e2e8f0;">Goal:</strong> Direct shot from elevated position</p>
+                        <p><strong style="color: #e2e8f0;">Success Rate:</strong> 50% (1 goal, 1 shot)</p>
+                        <p style="margin-top: 12px;"><strong style="color: #fbbf24;">Defensive Counter:</strong> Quick goalie prep; defend shooter space; force quality shot</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SHOTS ANALYSIS TAB -->
+        <div id="shots" class="tab-content">
+            <div class="section-title">Shot Location & Type Analysis</div>
+
+            <div class="grid-2">
+                <div class="chart-container">
+                    <div class="chart-title">Shot Type Distribution</div>
+                    <canvas id="shotTypeChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Shot Quality Distribution</div>
+                    <canvas id="shotQualityChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Shot Locations on Field (Heatmap)</div>
+                <div class="field-diagram">
+                    <svg viewBox="0 0 100 130" style="background-color: #0d4a2e;">
+                        <!-- Field lines -->
+                        <line x1="10" y1="10" x2="90" y2="10" stroke="#cbd5e1" stroke-width="0.5"/>
+                        <line x1="10" y1="10" x2="10" y2="120" stroke="#cbd5e1" stroke-width="0.5"/>
+                        <line x1="90" y1="10" x2="90" y2="120" stroke="#cbd5e1" stroke-width="0.5"/>
+                        <line x1="10" y1="120" x2="90" y2="120" stroke="#cbd5e1" stroke-width="0.5"/>
+                        <line x1="10" y1="65" x2="90" y2="65" stroke="#cbd5e1" stroke-width="0.5" stroke-dasharray="2,2"/>
+
+                        <!-- Crease -->
+                        <circle cx="85" cy="65" r="6" fill="none" stroke="#cbd5e1" stroke-width="0.5"/>
+                        <line x1="85" y1="71" x2="85" y2="80" stroke="#cbd5e1" stroke-width="0.5"/>
+
+                        <!-- 8m arc -->
+                        <path d="M 25 35 Q 25 20, 40 20 Q 55 20, 55 35" fill="none" stroke="#cbd5e1" stroke-width="0.5" opacity="0.5"/>
+                        <path d="M 25 95 Q 25 110, 40 110 Q 55 110, 55 95" fill="none" stroke="#cbd5e1" stroke-width="0.5" opacity="0.5"/>
+
+                        <!-- Goal line -->
+                        <line x1="85" y1="55" x2="85" y2="75" stroke="#ef4444" stroke-width="1" opacity="0.3"/>
+
+                        <!-- Shot locations (dots) -->
+                        <circle cx="70" cy="45" r="1.2" fill="#fbbf24" opacity="0.8"/><title>Goal</title>
+                        <circle cx="65" cy="65" r="1.2" fill="#fbbf24" opacity="0.8"/><title>Goal</title>
+                        <circle cx="75" cy="70" r="1" fill="#60a5fa" opacity="0.7"/><title>Shot on cage</title>
+                        <circle cx="55" cy="50" r="1" fill="#60a5fa" opacity="0.7"/><title>Shot on cage</title>
+                        <circle cx="70" cy="35" r="1.2" fill="#fbbf24" opacity="0.8"/><title>Goal</title>
+                        <circle cx="60" cy="60" r="1" fill="#60a5fa" opacity="0.7"/><title>Shot</title>
+                        <circle cx="75" cy="55" r="1" fill="#60a5fa" opacity="0.7"/><title>Shot</title>
+                        <circle cx="68" cy="75" r="1.2" fill="#fbbf24" opacity="0.8"/><title>Goal</title>
+                        <circle cx="72" cy="55" r="1" fill="#60a5fa" opacity="0.7"/><title>Shot</title>
+                        <circle cx="65" cy="80" r="1.2" fill="#fbbf24" opacity="0.8"/><title>Goal</title>
+
+                        <!-- Goalie -->
+                        <circle cx="85" cy="65" r="0.8" fill="#10b981"/>
+
+                        <!-- Legend -->
+                        <g transform="translate(15, 105)">
+                            <circle cx="0" cy="0" r="0.8" fill="#fbbf24"/><text x="3" y="2" font-size="5" fill="#fbbf24">Goal</text>
+                            <circle cx="15" cy="0" r="0.8" fill="#60a5fa"/><text x="18" y="2" font-size="5" fill="#60a5fa">Shot</text>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="formation-box">
+                <h3 style="color: #e2e8f0; margin-bottom: 15px;">Shot Tendencies & Patterns</h3>
+                <div style="color: #cbd5e1; line-height: 1.8; font-size: 0.9em;">
+                    <p><strong style="color: #e2e8f0;">High-Danger Zones:</strong> JMU generates 65% of goals from X (crease) and near-post areas (65-75 yds). They attack inside the 8m with spacing and movement.</p>
+                    <p style="margin-top: 10px;"><strong style="color: #e2e8f0;">Shot Types:</strong> Mix of rips (40%), bounce shots (30%), placement/underhand (30%). Rips are most frequent when they have space and time.</p>
+                    <p style="margin-top: 10px;"><strong style="color: #e2e8f0;">Shot Quality:</strong> 63% high-quality (on-cage), 23% medium, 14% poor (off-target or blocked).</p>
+                    <p style="margin-top: 10px;"><strong style="color: #e2e8f0;">Defensive Priority:</strong> Tighten crease defense. Don't give JMU time/space in the 8m. Prioritize blocking near-post shots.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TRANSITION ANALYSIS TAB -->
+        <div id="transition" class="tab-content">
+            <div class="section-title">Transition vs Settled Offense</div>
+
+            <div class="grid-2">
+                <div class="chart-container">
+                    <div class="chart-title">Transition vs Settled Clips</div>
+                    <canvas id="transitionVsSettledChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Outcome: Transition vs Settled</div>
+                    <canvas id="transitionOutcomeChart"></canvas>
+                </div>
+            </div>
+
+            <div class="formation-box">
+                <h3 style="color: #e2e8f0; margin-bottom: 15px;">Transition Triggers & Speed</h3>
+                <div style="color: #cbd5e1; line-height: 1.8; font-size: 0.9em;">
+                    <p><strong style="color: #e2e8f0;">Transition Frequency:</strong> 2 of 17 clips (12%) — lower than many teams. JMU prefers settled, structured offense.</p>
+                    <p style="margin-top: 10px;"><strong style="color: #e2e8f0;">Triggers:</strong> Defensive turnover or save that leads to immediate outlet pass. JMU attackers push in 2-3 man waves.</p>
+                    <p style="margin-top: 10px;"><strong style="color: #e2e8f0;">Attack Speed:</strong> Moderate pace. Not "helter-skelter" — still organized cuts and positioning even in transition.</p>
+                    <p style="margin-top: 10px;"><strong style="color: #e2e8f0;">Success Rate (Transition):</strong> 50% — 1 goal, 1 turnover. Not significantly better than settled (75%). </p>
+                    <p style="margin-top: 10px;"><strong style="color: #fbbf24;">Defensive Counter:</strong> Priority = outlet pressure and goalie positioning. Once settled, JMU's offense is more dangerous. Force long clears.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ALL CLIPS TABLE TAB -->
+        <div id="allClips" class="tab-content">
+            <div class="section-title">Complete Clip Inventory</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Clip #</th>
+                        <th>Category</th>
+                        <th>Play Type</th>
+                        <th>Formation</th>
+                        <th>Key Action</th>
+                        <th>Outcome</th>
+                        <th>Shot Quality</th>
+                    </tr>
+                </thead>
+                <tbody id="clipsTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- COUNTER STRATEGY TAB -->
+        <div id="counter" class="tab-content">
+            <div class="section-title">Defensive Counter Strategy & Game Plan</div>
+
+            <div class="recommendation-card must-execute">
+                <span class="rec-type must-execute">Must Execute</span>
+                <div class="rec-title">Denial & Off-Ball Pressure in Early Offense</div>
+                <div class="rec-content">JMU's strength (4 clips) is moving into designated spots in early/settled offense. Implementation: Tight off-ball positioning, immediate pressure on catch, deny drive space. Rotate aggressively to cutters. Don't allow attackers to set up in their preferred spots.</div>
+            </div>
+
+            <div class="recommendation-card must-execute">
+                <span class="rec-type must-execute">Must Execute</span>
+                <div class="rec-title">Roamer Awareness & Communication</div>
+                <div class="rec-content">Zone-with-roamer is 100% success (2/2 goals). Designate a defender to follow the roamer through all areas. Call out screens and picks. Adjust to mismatches quickly. Practice roamer-specific rotations in zone drills.</div>
+            </div>
+
+            <div class="recommendation-card must-execute">
+                <span class="rec-type must-execute">Must Execute</span>
+                <div class="rec-title">Crease Denial & Near-Post Defense</div>
+                <div class="rec-content">65% of JMU's goals come from X/crease area. Implementation: X defender plays high, denies crease touches, forces outside shots. Off-ball defenders crash crease on dodges. Practice crease clears and communication. Don't foul in crease.</div>
+            </div>
+
+            <div class="recommendation-card strong">
+                <span class="rec-type strong">Strong Recommendation</span>
+                <div class="rec-title">Screen & Pick Awareness (Texas Action)</div>
+                <div class="rec-content">Texas action (pick/screen) is 100% effective (2/2 goals). Defenders must fight through screens or switch. Communicate picks early ("Screen left!"). Practice hedge-and-recover techniques. Don't allow free rolls to crease.</div>
+            </div>
+
+            <div class="recommendation-card strong">
+                <span class="rec-type strong">Strong Recommendation</span>
+                <div class="rec-title">Outlet Pressure & Transition Defense</div>
+                <div class="rec-content">While transition only 12% of clips, JMU still converts 50%. Press goalie clears aggressively. Transition defense must reset quickly with numbers back. Don't surrender 3v2 or 4v3 advantages. Emphasize back-checking.</div>
+            </div>
+
+            <div class="recommendation-card situational">
+                <span class="rec-type situational">Situational</span>
+                <div class="rec-title">Penalty Kill Intensity (Extra Man Down)</div>
+                <div class="rec-content">JMU's penalty kill offense: 50% success (1 clear, 1 turnover). Maintain pressure even down-man. Force quick decisions. Don't allow easy clears to midfield. Collapsing D on clear attempts.</div>
+            </div>
+
+            <div class="recommendation-card situational">
+                <span class="rec-type situational">Situational</span>
+                <div class="rec-title">8-Meter Shot Preparation</div>
+                <div class="rec-content">Free positions (2 clips, 50% success). Goalie must be set and ready. Defenders should tighten around shooter space. Force the 8m shooter to settle and take a quick shot under pressure.</div>
+            </div>
+
+            <div class="recommendation-card situational">
+                <span class="rec-type situational">Situational</span>
+                <div class="rec-title">Broken Play Discipline</div>
+                <div class="rec-content">Broken plays (1 clip, 50% success) are lower frequency. Stay disciplined when structure breaks down. Don't foul reaching. Reset quickly. JMU's improvisation success rate is lower than plays.</div>
+            </div>
+
+            <div style="background-color: #1e293b; border: 2px solid #3b82f6; border-radius: 8px; padding: 25px; margin-top: 30px;">
+                <h3 style="color: #e0e7ff; margin-bottom: 20px; font-size: 1.1em;">Game Day Quick Reference Card</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    <div>
+                        <div style="color: #3b82f6; font-weight: 700; margin-bottom: 10px; text-transform: uppercase; font-size: 0.85em;">Early Offense (Priority 1)</div>
+                        <ul style="color: #cbd5e1; font-size: 0.9em; line-height: 1.7; list-style-position: inside;">
+                            <li>Tight off-ball rotations</li>
+                            <li>Deny designated spots</li>
+                            <li>High pressure on catch</li>
+                            <li>Crease: stack it</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div style="color: #3b82f6; font-weight: 700; margin-bottom: 10px; text-transform: uppercase; font-size: 0.85em;">Roamer (Priority 1)</div>
+                        <ul style="color: #cbd5e1; font-size: 0.9em; line-height: 1.7; list-style-position: inside;">
+                            <li>Designate roamer defender</li>
+                            <li>Call all screens</li>
+                            <li>No free 1v1s</li>
+                            <li>Switch/hedge fast</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div style="color: #3b82f6; font-weight: 700; margin-bottom: 10px; text-transform: uppercase; font-size: 0.85em;">Screens/Picks (Priority 2)</div>
+                        <ul style="color: #cbd5e1; font-size: 0.9em; line-height: 1.7; list-style-position: inside;">
+                            <li>Fight through or switch</li>
+                            <li>Early communication</li>
+                            <li>Deny crease rolls</li>
+                            <li>Practice hedge-recover</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div style="color: #3b82f6; font-weight: 700; margin-bottom: 10px; text-transform: uppercase; font-size: 0.85em;">Transition (Priority 3)</div>
+                        <ul style="color: #cbd5e1; font-size: 0.9em; line-height: 1.7; list-style-position: inside;">
+                            <li>Outlet pressure</li>
+                            <li>Numbers back quick</li>
+                            <li>Back-check hard</li>
+                            <li>Don't foul in transition</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div style="color: #3b82f6; font-weight: 700; margin-bottom: 10px; text-transform: uppercase; font-size: 0.85em;">Crease Denial</div>
+                        <ul style="color: #cbd5e1; font-size: 0.9em; line-height: 1.7; list-style-position: inside;">
+                            <li>X plays high</li>
+                            <li>No crease touches</li>
+                            <li>Crash on dodges</li>
+                            <li>Communication: "CREASE!"</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div style="color: #3b82f6; font-weight: 700; margin-bottom: 10px; text-transform: uppercase; font-size: 0.85em;">Penalty Kill</div>
+                        <ul style="color: #cbd5e1; font-size: 0.9em; line-height: 1.7; list-style-position: inside;">
+                            <li>Maintain intensity</li>
+                            <li>Force quick clear</li>
+                            <li>Collapsing D</li>
+                            <li>No free clears midfield</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data Structure: All 17 JMU Offense Clips
+        const ALL = [
+            {id: 1, name: "01-penalty_kill", cat: "Penalty Kill", play: "Penalty Kill Offense", form: "3-2-1 Attack", action: "Down-man clear attempt with passes", out: "Clear", shot: "None", loc: "Midfield", pace: "Penalty", key_players: "JMU Attack Mid/LSM", note: "JMU executes organized penalty kill. Passes out of defense, quick outlet. Forces clearing motion even down-man. Shows discipline. Outcome: successful clear to midfield."},
+            {id: 2, name: "02-penalty_kill_shared_check_in_", cat: "Penalty Kill", play: "Penalty Kill (Shared Check-In)", form: "Shared Positioning", action: "Extra-man defense positioning with shared responsibility", out: "Turnover", shot: "None", loc: "Midfield", pace: "Penalty", key_players: "JMU LSM/Attack Mid", note: "Shared check-in pattern on penalty kill. Attackers rotate positions, share coverage. Can slow UVA's possession. However, UVA forces turnover. Tells us: JMU has set penalty kill plays but can be disrupted with intensity."},
+            {id: 3, name: "03-8m", cat: "8-Meter Free Position", play: "8-Meter Free Position", form: "Crease Set", action: "Attacker shoots from 8m free position", out: "Goal", shot: "Rip", loc: "8m Arc (Top)", pace: "Set Piece", key_players: "8m Shooter", note: "Clean free position. Shooter settles, takes direct rip. High-quality shot. Goalie set but can't stop. 8m shooters: don't give space/time. Make them uncomfortable."},
+            {id: 4, name: "04-8M", cat: "8-Meter Free Position", play: "8-Meter Free Position", form: "Elevated", action: "8-meter shot after ground ball", out: "Shot on Cage", shot: "Rip", loc: "8m Arc", pace: "Set Piece", key_players: "8m Shooter", note: "Ground ball battle then 8m shot. Solid quality. UVA goalie makes save. Shows JMU gets ground balls near 8m and shoots quickly. Transition from ground to shot is fast."},
+            {id: 5, name: "05-transition", cat: "Transition", play: "Transition Offense", form: "3-Man Attack", action: "Fast break following turnover", out: "Shot on Cage", shot: "Rip", loc: "X Area", pace: "Transition", key_players: "JMU Attackers", note: "JMU outlet pass leads to 3v2. Attack is organized even in fast break. Shooter takes from near-post area. Medium quality. UVA defense reads the transition and forces a difficult angle."},
+            {id: 6, name: "06-Zone_w_roamer", cat: "Zone with Roamer", play: "Zone Offense (Roamer)", form: "Roaming Attacker", action: "Roamer cuts into zone gap, gets 1v1", out: "Goal", shot: "Dodge-Shot", loc: "High X", pace: "Settled", key_players: "Roamer Attacker", note: "Roamer starts high, cuts into middle. Zone defender loses him. Roamer gets 1v1, scores cleanly. This is DANGEROUS. JMU's roamer is skilled. Must assign dedicated roamer defender."},
+            {id: 7, name: "07-zone_w_roamer_", cat: "Zone with Roamer", play: "Zone Offense (Roamer Variant)", form: "Double Roamer", action: "Roamer creates mismatch with quick cuts", out: "Goal", shot: "Bounce", loc: "X to Low", pace: "Settled", key_players: "Roamer #1 and #2", note: "Two roamers attack zone. Ball movement is quick. First roamer draws attention, second roamer gets open shot. Zone can't handle multiple movers. 100% success with roamer concept (2/2 goals)."},
+            {id: 8, name: "08-pizza_pie_rip", cat: "Set Plays", play: "Pizza Pie Rip", form: "Pizza Pie (5-Man Fan)", action: "Ball movement around pie, rip shot from crease", out: "Goal", shot: "Rip", loc: "Crease", pace: "Settled", key_players: "Crease Attacker / Rip Shooter", note: "5-man fan formation (pizza pie). Quick passes around pie. Rip shooter positioned for inside shot. Ball finds rip shooter who rips it clean. Named play execution. Very effective when run well."},
+            {id: 9, name: "09-Texas_action_in_play", cat: "Set Plays", play: "Texas Action / Screen", form: "Pick & Roll", action: "Screen for ballcarrier, slip to crease or open space", out: "Goal", shot: "Placement", loc: "Crease", pace: "Settled", key_players: "Screener / Ball Carrier", note: "Texas action: pick/screen. Ballcarrier curls off screen, gets into crease area. Screener slips and creates confusion. Defender can't navigate. Goal off open crease touch. JMU runs this effectively. Must fight through/switch."},
+            {id: 10, name: "10-early_O", cat: "Early Offense", play: "Early Offense / Settled", form: "Spread Top", action: "Controlled ball movement, space creation, shot attempt", out: "Goal", shot: "Rip", loc: "Top", pace: "Settled", key_players: "Attackers at Top", note: "Classic early/settled offense. JMU spreads attackers wide, moves ball calmly. Patient setup, then rip from outside the 8m. Good spacing creates shot. High percentage offense for JMU."},
+            {id: 11, name: "11-transition", cat: "Transition", play: "Transition Offense", form: "Push Pace", action: "Push after save/turnover, 4v3 attack", out: "Turnover", shot: "None", loc: "Midfield", pace: "Transition", key_players: "JMU Attackers", note: "JMU pushes pace off save. 4-man attack tries to outnumber. UVA defense sets quickly and forces turnover. Transition not as effective as settled (50% success for JMU transition)."},
+            {id: 12, name: "12-broken_play", cat: "Broken Play / Green Light", play: "Broken Play", form: "Loose/Improvised", action: "Structure breaks down, individual dodge attempt", out: "Turnover", shot: "None", loc: "Midfield", pace: "Settled", key_players: "Solo Dodger", note: "Play breaks down. One attacker tries to improvise/dodge. Doesn't work. Turnover. Shows: when JMU can't run set offense, they struggle. Discipline pays off."},
+            {id: 13, name: "13-green_light", cat: "Broken Play / Green Light", play: "Green Light / Fast Break", form: "Transition to Shot", action: "Fast break permission, immediate shot opportunity", out: "Shot on Cage", shot: "Rip", loc: "High X", pace: "Transition", key_players: "Fast Break Scorer", note: "Green light: permission to shoot on fast break. JMU attacker gets open look near X, takes rip. Quality shot. Goalie makes save. Shows JMU has capable fast-break scorers."},
+            {id: 14, name: "14-UVA_early_O_1st_touch", cat: "Early Offense", play: "Early Offense Reference", form: "First Touch Emphasis", action: "Reference: UVA's own early O first-touch pattern", out: "Reference", shot: "None", loc: "N/A", pace: "Reference", key_players: "UVA Attackers", note: "This is a REFERENCE clip of UVA's own early offense (first-touch pattern). Shows how UVA gets to spots. Useful for comparison: JMU's early O similar in concept but slightly different spacing/timing."},
+            {id: 15, name: "15-early_O_JMU_wants_to_get_to_spots_", cat: "Early Offense", play: "Early Offense (Spot-Oriented)", form: "Spot-Running Offense", action: "JMU attackers move to designated spots, then initiate offense", out: "Shot on Cage", shot: "Rip", loc: "Top Right", pace: "Settled", key_players: "Spot Runners", note: "JMU's early O: they want to GET TO SPOTS. Not random movement — structured positioning at predetermined spots. Once at spots, ball movement is fluid. This is coached, disciplined offense. Tells us: deny the spots, not the players."},
+            {id: 16, name: "16-early_O", cat: "Early Offense", play: "Early Offense", form: "Standard Spacing", action: "Settled possession, ball movement, interior finish", out: "Goal", shot: "Bounce", loc: "Interior", pace: "Settled", key_players: "JMU Attackers", note: "Standard early offense. Attackers set in space, pass around perimeter, feed interior. Bounce shot from close range. Goal. Classic structure. JMU executes this well. This is their bread-and-butter."},
+            {id: 17, name: "17-zone_w_face_guard", cat: "Zone with Face Guard", play: "Zone vs Face Guard", form: "vs Face Guard Defense", action: "Zone offense against UVA's face guard look", out: "Turnover", shot: "None", loc: "Midfield", pace: "Settled", key_players: "JMU Zone Beaters", note: "JMU runs zone offense vs face guard. UVA's face guard pressures on catch. JMU can't get into rhythm. Turnover. Shows: tight, aggressive defense limits JMU's setup time."}
+        ];
+
+        const CATEGORIES = ["All", "Penalty Kill", "8-Meter Free Position", "Transition", "Zone with Roamer", "Set Plays", "Early Offense", "Broken Play / Green Light", "Zone with Face Guard"];
+
+        let charts = {};
+        let currentFilter = "All";
+
+        // Initialize
+        function init() {
+            populateCategoryPills();
+            populateClipSelector();
+            populateClipDetailSelector();
+            populateClipsTable();
+            renderAll();
+        }
+
+        function populateCategoryPills() {
+            const container = document.getElementById('categoryPills');
+            CATEGORIES.forEach(cat => {
+                const pill = document.createElement('button');
+                pill.className = 'pill' + (cat === 'All' ? ' active' : '');
+                pill.textContent = cat;
+                pill.onclick = function() { filterCategory(cat, this); };
+                container.appendChild(pill);
+            });
+        }
+
+        function filterCategory(cat, el) {
+            currentFilter = cat;
+            document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+            if (el) el.classList.add('active');
+            renderAll();
+        }
+
+        function populateClipSelector() {
+            const selector = document.getElementById('clipSelector');
+            ALL.forEach(clip => {
+                const option = document.createElement('option');
+                option.value = clip.id;
+                option.textContent = `${clip.id}. ${clip.name}`;
+                selector.appendChild(option);
+            });
+        }
+
+        function populateClipDetailSelector() {
+            const selector = document.getElementById('clipDetailSelector');
+            ALL.forEach(clip => {
+                const option = document.createElement('option');
+                option.value = clip.id;
+                option.textContent = `${clip.id}. ${clip.name} (${clip.cat})`;
+                selector.appendChild(option);
+            });
+        }
+
+        function selectClip() {
+            const val = document.getElementById('clipSelector').value;
+            if (val) {
+                document.getElementById('clipDetailSelector').value = val;
+                switchTab('clipDetail');
+                showClipDetail();
+            }
+        }
+
+        function showClipDetail() {
+            const clipId = parseInt(document.getElementById('clipDetailSelector').value);
+            const clip = ALL.find(c => c.id === clipId);
+            if (!clip) return;
+
+            const html = `
+                <div class="clip-detail-box">
+                    <div class="detail-row">
+                        <div class="detail-label">Clip #</div>
+                        <div class="detail-value">${clip.id}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Filename</div>
+                        <div class="detail-value">${clip.name}.mp4</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Category</div>
+                        <div class="detail-value"><span class="badge badge-settled">${clip.cat}</span></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Play Type</div>
+                        <div class="detail-value">${clip.play}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Formation</div>
+                        <div class="detail-value">${clip.form}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Pace</div>
+                        <div class="detail-value"><span class="badge ${clip.pace === 'Transition' ? 'badge-transition' : clip.pace === 'Penalty' ? 'badge-penalty' : 'badge-settled'}">${clip.pace}</span></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Key Action Sequence</div>
+                        <div class="detail-value">${clip.action}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Outcome</div>
+                        <div class="detail-value"><span class="badge ${clip.out === 'Goal' ? 'badge-goal' : clip.out === 'Shot on Cage' ? 'badge-shot' : 'badge-turnover'}">${clip.out}</span></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Shot Type & Quality</div>
+                        <div class="detail-value">${clip.shot} ${clip.shot !== 'None' ? `| Location: ${clip.loc}` : ''}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Key Players Involved</div>
+                        <div class="detail-value">${clip.key_players}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Scouting Notes & Defensive Recommendations</div>
+                        <div class="detail-value">${clip.note}</div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('clipDetailContent').innerHTML = html;
+        }
+
+        function populateClipsTable() {
+            const tbody = document.getElementById('clipsTableBody');
+            ALL.forEach(clip => {
+                const row = tbody.insertRow();
+                row.style.cursor = 'pointer';
+                row.onclick = () => {
+                    document.getElementById('clipDetailSelector').value = clip.id;
+                    switchTab('clipDetail');
+                    showClipDetail();
+                };
+                row.innerHTML = `
+                    <td>${clip.id}</td>
+                    <td>${clip.cat}</td>
+                    <td>${clip.play}</td>
+                    <td>${clip.form}</td>
+                    <td>${clip.action}</td>
+                    <td><span class="badge ${clip.out === 'Goal' ? 'badge-goal' : clip.out === 'Shot on Cage' ? 'badge-shot' : 'badge-turnover'}">${clip.out}</span></td>
+                    <td>${clip.shot}</td>
+                `;
+            });
+        }
+
+        function switchTab(tab, el) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            if (el) el.classList.add('active');
+            else {
+                document.querySelectorAll('.tab-button').forEach(b => {
+                    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + tab + "'")) b.classList.add('active');
+                });
+            }
+            setTimeout(renderAll, 100);
+        }
+
+        function getFilteredClips() {
+            return currentFilter === 'All' ? ALL : ALL.filter(c => c.cat === currentFilter);
+        }
+
+        function renderAll() {
+            const filtered = getFilteredClips();
+
+            // Summary stats
+            const goals = filtered.filter(c => c.out === 'Goal').length;
+            const shots = filtered.filter(c => c.out === 'Shot on Cage').length;
+            const turnovers = filtered.filter(c => c.out === 'Turnover').length;
+
+            document.getElementById('totalClips').textContent = filtered.length;
+            document.getElementById('goalsScore').textContent = goals;
+            document.getElementById('shotsOnCage').textContent = shots;
+            document.getElementById('turnovers').textContent = turnovers;
+
+            renderCharts(filtered);
+        }
+
+        function destroyChart(id) {
+            if (charts[id]) {
+                charts[id].destroy();
+                delete charts[id];
+            }
+        }
+
+        function renderCharts(filtered) {
+            // Category Distribution
+            destroyChart('categoryDistChart');
+            const catCounts = {};
+            CATEGORIES.slice(1).forEach(cat => {
+                catCounts[cat] = filtered.filter(c => c.cat === cat).length;
+            });
+            const ctx1 = document.getElementById('categoryDistChart');
+            if (ctx1) {
+                charts['categoryDistChart'] = new Chart(ctx1, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(catCounts),
+                        datasets: [{
+                            data: Object.values(catCounts),
+                            backgroundColor: ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#ef4444', '#6366f1'],
+                            borderColor: '#1e293b',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { labels: { color: '#cbd5e1' } } }
+                    }
+                });
+            }
+
+            // Outcome by Category
+            destroyChart('outcomeByCategory');
+            const outcomeByCat = {};
+            CATEGORIES.slice(1).forEach(cat => {
+                const clipsCat = filtered.filter(c => c.cat === cat);
+                outcomeByCat[cat] = {
+                    goal: clipsCat.filter(c => c.out === 'Goal').length,
+                    shot: clipsCat.filter(c => c.out === 'Shot on Cage').length,
+                    turnover: clipsCat.filter(c => c.out === 'Turnover').length
+                };
+            });
+            const ctx2 = document.getElementById('outcomeByCategory');
+            if (ctx2) {
+                charts['outcomeByCategory'] = new Chart(ctx2, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(outcomeByCat),
+                        datasets: [
+                            {
+                                label: 'Goals',
+                                data: Object.values(outcomeByCat).map(v => v.goal),
+                                backgroundColor: '#10b981'
+                            },
+                            {
+                                label: 'Shots',
+                                data: Object.values(outcomeByCat).map(v => v.shot),
+                                backgroundColor: '#3b82f6'
+                            },
+                            {
+                                label: 'Turnovers',
+                                data: Object.values(outcomeByCat).map(v => v.turnover),
+                                backgroundColor: '#ef4444'
+                            }
+                        ]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { labels: { color: '#cbd5e1' } } },
+                        scales: { x: { ticks: { color: '#cbd5e1' } }, y: { ticks: { color: '#cbd5e1' } } }
+                    }
+                });
+            }
+
+            // Play Type Frequency
+            destroyChart('playTypeFreqChart');
+            const playTypeCounts = {};
+            filtered.forEach(c => {
+                playTypeCounts[c.play] = (playTypeCounts[c.play] || 0) + 1;
+            });
+            const sorted = Object.entries(playTypeCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
+            const ctx3 = document.getElementById('playTypeFreqChart');
+            if (ctx3) {
+                charts['playTypeFreqChart'] = new Chart(ctx3, {
+                    type: 'bar',
+                    data: {
+                        labels: sorted.map(e => e[0]),
+                        datasets: [{
+                            label: 'Frequency',
+                            data: sorted.map(e => e[1]),
+                            backgroundColor: '#3b82f6',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { ticks: { color: '#cbd5e1', beginAtZero: true } },
+                            y: { ticks: { color: '#cbd5e1' } }
+                        }
+                    }
+                });
+            }
+
+            // Play Type Success
+            destroyChart('playTypeSuccessChart');
+            const playTypeSuccess = {};
+            filtered.forEach(c => {
+                if (!playTypeSuccess[c.play]) {
+                    playTypeSuccess[c.play] = { goal: 0, shot: 0, turnover: 0, total: 0 };
+                }
+                playTypeSuccess[c.play].total++;
+                if (c.out === 'Goal') playTypeSuccess[c.play].goal++;
+                else if (c.out === 'Shot on Cage') playTypeSuccess[c.play].shot++;
+                else playTypeSuccess[c.play].turnover++;
+            });
+            const successData = Object.entries(playTypeSuccess).map(([play, data]) => ({
+                play,
+                success: data.goal + data.shot,
+                fail: data.turnover,
+                rate: (((data.goal + data.shot) / data.total) * 100).toFixed(0)
+            }));
+            const ctx4 = document.getElementById('playTypeSuccessChart');
+            if (ctx4) {
+                charts['playTypeSuccessChart'] = new Chart(ctx4, {
+                    type: 'bar',
+                    data: {
+                        labels: successData.map(d => `${d.play} (${d.rate}%)`),
+                        datasets: [
+                            {
+                                label: 'Goals + Shots',
+                                data: successData.map(d => d.success),
+                                backgroundColor: '#10b981'
+                            },
+                            {
+                                label: 'Turnovers',
+                                data: successData.map(d => d.fail),
+                                backgroundColor: '#ef4444'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { labels: { color: '#cbd5e1' } } },
+                        scales: { x: { ticks: { color: '#cbd5e1' } }, y: { ticks: { color: '#cbd5e1' } } }
+                    }
+                });
+            }
+
+            // Shot Type
+            destroyChart('shotTypeChart');
+            const shotTypes = {};
+            filtered.forEach(c => {
+                if (c.shot !== 'None') {
+                    const st = c.shot.split('-')[0].trim();
+                    shotTypes[st] = (shotTypes[st] || 0) + 1;
+                }
+            });
+            const ctx5 = document.getElementById('shotTypeChart');
+            if (ctx5) {
+                charts['shotTypeChart'] = new Chart(ctx5, {
+                    type: 'pie',
+                    data: {
+                        labels: Object.keys(shotTypes),
+                        datasets: [{
+                            data: Object.values(shotTypes),
+                            backgroundColor: ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b'],
+                            borderColor: '#1e293b',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { labels: { color: '#cbd5e1' } } }
+                    }
+                });
+            }
+
+            // Shot Quality
+            destroyChart('shotQualityChart');
+            const shotQualities = {
+                'High': filtered.filter(c => ['Goal', 'Rip', 'Dodge-Shot', 'Bounce', 'Placement'].includes(c.shot)).length,
+                'Medium': filtered.filter(c => c.shot === 'Rip' && c.out !== 'Goal').length,
+                'Low': filtered.filter(c => c.out === 'Turnover').length
+            };
+            const ctx6 = document.getElementById('shotQualityChart');
+            if (ctx6) {
+                charts['shotQualityChart'] = new Chart(ctx6, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['High Quality', 'Medium Quality', 'Low/Missed'],
+                        datasets: [{
+                            data: [
+                                filtered.filter(c => c.out === 'Goal' || (c.out === 'Shot on Cage')).length,
+                                filtered.filter(c => c.shot !== 'None' && c.out !== 'Goal' && c.out !== 'Shot on Cage').length,
+                                filtered.filter(c => c.out === 'Turnover').length
+                            ],
+                            backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                            borderColor: '#1e293b',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { labels: { color: '#cbd5e1' } } }
+                    }
+                });
+            }
+
+            // Transition vs Settled
+            destroyChart('transitionVsSettledChart');
+            const transCount = filtered.filter(c => c.pace === 'Transition').length;
+            const settledCount = filtered.filter(c => c.pace === 'Settled').length;
+            const ctx7 = document.getElementById('transitionVsSettledChart');
+            if (ctx7) {
+                charts['transitionVsSettledChart'] = new Chart(ctx7, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Transition', 'Settled', 'Penalty/Set'],
+                        datasets: [{
+                            label: 'Clip Count',
+                            data: [
+                                transCount,
+                                settledCount,
+                                filtered.filter(c => c.pace === 'Penalty' || c.pace === 'Set Piece').length
+                            ],
+                            backgroundColor: ['#3b82f6', '#10b981', '#f59e0b'],
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { x: { ticks: { color: '#cbd5e1' } }, y: { ticks: { color: '#cbd5e1' } } }
+                    }
+                });
+            }
+
+            // Transition Outcome
+            destroyChart('transitionOutcomeChart');
+            const transOutcome = {
+                goal: filtered.filter(c => c.pace === 'Transition' && c.out === 'Goal').length,
+                shot: filtered.filter(c => c.pace === 'Transition' && c.out === 'Shot on Cage').length,
+                turn: filtered.filter(c => c.pace === 'Transition' && c.out === 'Turnover').length
+            };
+            const settlOutcome = {
+                goal: filtered.filter(c => c.pace === 'Settled' && c.out === 'Goal').length,
+                shot: filtered.filter(c => c.pace === 'Settled' && c.out === 'Shot on Cage').length,
+                turn: filtered.filter(c => c.pace === 'Settled' && c.out === 'Turnover').length
+            };
+            const ctx8 = document.getElementById('transitionOutcomeChart');
+            if (ctx8) {
+                charts['transitionOutcomeChart'] = new Chart(ctx8, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Goals', 'Shots on Cage', 'Turnovers'],
+                        datasets: [
+                            {
+                                label: 'Transition',
+                                data: [transOutcome.goal, transOutcome.shot, transOutcome.turn],
+                                backgroundColor: '#3b82f6'
+                            },
+                            {
+                                label: 'Settled',
+                                data: [settlOutcome.goal, settlOutcome.shot, settlOutcome.turn],
+                                backgroundColor: '#10b981'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { labels: { color: '#cbd5e1' } } },
+                        scales: { x: { ticks: { color: '#cbd5e1' } }, y: { ticks: { color: '#cbd5e1' } } }
+                    }
+                });
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

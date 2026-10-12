@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JMU Draw Control Scouting Report</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0f172a;--card:#1e293b;--card2:#334155;--border:#475569;--text:#f8fafc;--muted:#94a3b8;--dim:#64748b;--win:#22c55e;--loss:#ef4444;--fifty:#f59e0b;--p29:#a78bfa;--p17:#22d3ee;--p18:#fbbf24;--pri:#818cf8;--acc:#06b6d4;--left:#3b82f6;--right:#f97316;--fwd:#22c55e;--back:#ef4444}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;line-height:1.5}
+.header{background:linear-gradient(135deg,#1e1b4b,#312e81,#4c1d95);padding:20px 32px;border-bottom:1px solid var(--border)}
+.header h1{font-size:24px;font-weight:800;letter-spacing:-.5px}
+.header .sub{color:var(--muted);font-size:12px;margin-top:2px}
+.badge{display:inline-block;background:var(--loss);color:#fff;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700;margin-left:8px;vertical-align:middle}
+/* Filter Bar */
+.filter-bar{display:flex;align-items:center;gap:12px;padding:12px 32px;background:var(--card);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.filter-bar label{font-size:12px;color:var(--muted);font-weight:600}
+.fbtn{padding:5px 14px;border-radius:16px;border:1px solid var(--border);cursor:pointer;font-size:12px;font-weight:600;background:transparent;color:var(--muted);transition:all .15s}
+.fbtn:hover{border-color:var(--pri);color:var(--text)}
+.fbtn.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+.fbtn.on29{background:var(--p29);border-color:var(--p29);color:#fff}
+.fbtn.on17{background:var(--p17);border-color:var(--p17);color:#000}
+.fbtn.on18{background:var(--p18);border-color:var(--p18);color:#000}
+.clip-select{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;min-width:200px}
+.clip-select option{background:var(--bg);color:var(--text)}
+.sep{width:1px;height:24px;background:var(--border)}
+/* Tabs */
+.tabs{display:flex;gap:2px;padding:0 32px;background:rgba(30,41,59,.6);border-bottom:1px solid var(--border);overflow-x:auto}
+.tab{padding:11px 16px;border:none;cursor:pointer;font-size:12px;font-weight:600;background:transparent;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s}
+.tab.active{background:var(--bg);color:var(--text);border-bottom-color:var(--pri)}
+.tab:hover{color:var(--text)}
+/* Content */
+.content{padding:20px 32px;max-width:1440px;margin:0 auto}
+.grid{display:grid;gap:14px;margin-bottom:20px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}.g4{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}.g6{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.card{background:var(--card);border-radius:10px;padding:16px;border:1px solid var(--border)}
+.card h3{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.stat{text-align:center}.stat .val{font-size:30px;font-weight:800}.stat .lbl{font-size:11px;color:var(--muted);margin-top:2px}.stat .sub2{font-size:10px;color:var(--dim)}
+.pill{display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700}
+.pw{background:rgba(34,197,94,.15);color:var(--win)}.pl{background:rgba(239,68,68,.15);color:var(--loss)}.pf{background:rgba(245,158,11,.15);color:var(--fifty)}
+.p29c{background:rgba(167,139,250,.15);color:var(--p29)}.p17c{background:rgba(34,211,238,.15);color:var(--p17)}.p18c{background:rgba(251,191,36,.15);color:var(--p18)}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{padding:7px;text-align:left;color:var(--muted);font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--border)}
+td{padding:7px;border-bottom:1px solid rgba(71,85,105,.3)}
+tr.clickable{cursor:pointer}tr.clickable:hover td{background:rgba(99,102,241,.08)}
+tr.selected-row td{background:rgba(99,102,241,.15)!important}
+.chart-wrap{position:relative;width:100%}
+.hidden{display:none}
+.insight{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;font-size:12px;color:var(--muted);line-height:1.5}
+.insight .dot{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.strat-item{background:var(--bg);border-radius:8px;padding:14px;border-left:3px solid var(--loss);margin-bottom:10px}
+.strat-item.p2{border-left-color:var(--fifty)}.strat-item.p3{border-left-color:var(--acc)}
+.strat-item h4{font-size:13px;font-weight:700;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
+.strat-item p{font-size:12px;color:var(--muted);line-height:1.5}
+.flow-row{display:flex;align-items:center;gap:5px;margin-bottom:5px;font-size:11px}
+.flow-tag{padding:2px 6px;border-radius:4px;font-size:10px}
+.cheat{background:var(--bg);border-radius:8px;padding:14px}
+.cheat h4{font-size:13px;font-weight:700;margin-bottom:6px}
+.cheat div{font-size:11px;color:var(--muted);line-height:1.8}
+.bar-track{height:7px;background:rgba(71,85,105,.3);border-radius:4px;overflow:hidden;margin-top:3px}
+.bar-fill{height:100%;border-radius:4px;transition:width .5s}
+/* Single Clip Detail Panel */
+.clip-detail{background:linear-gradient(135deg,#1e293b,#334155);border:1px solid var(--pri);border-radius:12px;padding:20px;margin-bottom:20px;position:relative}
+.clip-detail .close-btn{position:absolute;top:10px;right:14px;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer}
+.clip-detail .close-btn:hover{color:var(--text)}
+.clip-detail h2{font-size:16px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.detail-field{background:var(--bg);border-radius:8px;padding:10px}
+.detail-field .df-label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:3px}
+.detail-field .df-val{font-size:15px;font-weight:700}
+.detail-notes{background:var(--bg);border-radius:8px;padding:12px;margin-top:12px;font-size:13px;color:var(--muted);line-height:1.6;border-left:3px solid var(--acc)}
+.detail-mini-field{margin-top:12px}
+.wing-card{background:var(--bg);border-radius:8px;padding:12px;margin-bottom:8px}
+.wing-card h4{font-size:12px;font-weight:700;margin-bottom:4px}
+@media(max-width:900px){.g2,.g3{grid-template-columns:1fr}.content{padding:14px}.filter-bar{padding:10px 14px}.detail-grid{grid-template-columns:1fr 1fr}}
+@media print{body{background:#fff;color:#000}.card{border:1px solid #ccc}.tabs,.filter-bar{display:none}.hidden{display:block!important}}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>JMU Draw Control Scouting Report <span class="badge">OPPONENT FILM</span></h1>
+  <div class="sub">32 Draw Controls Analyzed | Multi-Game Film Study | Prepared for Game Prep</div>
+</div>
+
+<!-- GLOBAL FILTER BAR -->
+<div class="filter-bar">
+  <label>PLAYER:</label>
+  <button class="fbtn on" data-player="All" onclick="setPlayer('All',this)">All</button>
+  <button class="fbtn" data-player="#29" onclick="setPlayer('#29',this)">#29</button>
+  <button class="fbtn" data-player="#17" onclick="setPlayer('#17',this)">#17</button>
+  <button class="fbtn" data-player="#18" onclick="setPlayer('#18',this)">#18</button>
+  <div class="sep"></div>
+  <label>CLIP:</label>
+  <select class="clip-select" id="clipSelect" onchange="selectClip(this.value)">
+    <option value="all">All Clips — Aggregate View</option>
+  </select>
+  <div class="sep"></div>
+  <span style="font-size:11px;color:var(--dim)" id="filter-status">Showing 32 of 32 draws</span>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" data-tab="summary" onclick="switchTab('summary',this)">Summary</button>
+  <button class="tab" data-tab="clipview" onclick="switchTab('clipview',this)">Clip Detail</button>
+  <button class="tab" data-tab="field" onclick="switchTab('field',this)">Field Movement</button>
+  <button class="tab" data-tab="wings" onclick="switchTab('wings',this)">Wing Analysis</button>
+  <button class="tab" data-tab="clips" onclick="switchTab('clips',this)">All Clips Table</button>
+  <button class="tab" data-tab="technique" onclick="switchTab('technique',this)">Technique</button>
+  <button class="tab" data-tab="players" onclick="switchTab('players',this)">Player Profiles</button>
+  <button class="tab" data-tab="strategy" onclick="switchTab('strategy',this)">Strategy</button>
+</div>
+
+<!-- TAB CONTAINERS -->
+<div class="content tab-content" id="tab-summary"></div>
+<div class="content tab-content hidden" id="tab-clipview"></div>
+<div class="content tab-content hidden" id="tab-field"></div>
+<div class="content tab-content hidden" id="tab-wings"></div>
+<div class="content tab-content hidden" id="tab-clips"></div>
+<div class="content tab-content hidden" id="tab-technique"></div>
+<div class="content tab-content hidden" id="tab-players"></div>
+<div class="content tab-content hidden" id="tab-strategy"></div>
+
+<script>
+// ============================================================
+// DATASET
+// ============================================================
+const ALL=[
+{id:1,p:"#29",tech:"Forward Clamp",dir:"Fwd-Left",clk:10,dist:"Med",ht:"Ground",out:"Win",poss:"Wing",who:"Left Wing",wing:"#24",ttp:3.2,spd:"Avg",ven:"vs Hopkins",note:"#24 boxing out left wing; standard FSW setup; ball forward-left to waiting wing. Classic #29 pattern — identical to clips 3 and 7. #24 positions early at 9 o'clock and uses body seal."},
+{id:2,p:"#29",tech:"Forward Clamp",dir:"Fwd-Left",clk:9,dist:"Med",ht:"Ground",out:"Win",poss:"Wing",who:"Left Wing",wing:"#24",ttp:3.8,spd:"Avg",ven:"vs Hopkins",note:"LAST MINUTE of game — pattern UNCHANGED under pressure. Draw left variant; #24 secures again. Critical insight: JMU does NOT alter strategy in pressure situations. Same FSW to left."},
+{id:3,p:"#29",tech:"Forward Clamp",dir:"Fwd-Left",clk:10,dist:"Med",ht:"Ground",out:"Win",poss:"Wing",who:"Left Wing",wing:"#24",ttp:2.9,spd:"Fast",ven:"vs Hopkins",note:"Identical to clip 1 — extremely repeatable pattern; #24 boxing. Fastest execution of the standard FSW at 2.9s. #24 already in position before whistle."},
+{id:4,p:"#29",tech:"Forward Clamp + DL",dir:"Fwd-Left",clk:9,dist:"Med",ht:"Bounce",out:"Win",poss:"Wing",who:"Left Wing",wing:"#24",ttp:4.1,spd:"Avg",ven:"vs Hopkins",note:"Opponent #5 tried to pull/contest but failed; #29 maintained left direction despite opposition. Ball bounced once — slightly messier. DL = draw left variation where #29 prioritizes getting ball left first."},
+{id:5,p:"#29",tech:"Physical Clamp",dir:"Fwd-Left",clk:9,dist:"Short",ht:"Ground",out:"Win",poss:"Scramble",who:"Draw Taker",wing:"-",ttp:4.5,spd:"Slow",ven:"at Hopkins",note:"Very physical in the circle; boxing with body positioning. #29 used physicality when clean technique was contested. Slow 4.5s possession — scramble not clean wing. Shows #29 can grind when needed but less efficient."},
+{id:6,p:"#29",tech:"Delayed Clamp",dir:"Fwd-Left",clk:9,dist:"Med",ht:"Ground",out:"Win",poss:"Wing",who:"Left Wing",wing:"#24",ttp:3.5,spd:"Avg",ven:"vs Hopkins",note:"Circle dancing/movement before draw; delayed timing to disrupt opponent rhythm. #29 moved around the circle before settling — then executed standard FSW. Delay is designed to throw off opponent's timing."},
+{id:7,p:"#29",tech:"Draw Left Clamp",dir:"Left",clk:9,dist:"Med",ht:"Ground",out:"Win",poss:"Wing",who:"Left Wing",wing:"#24",ttp:3.0,spd:"Fast",ven:"vs Hopkins",note:"Pure draw-left first, forward second. #29 prioritizes getting ball to left side before anything. Shows the hierarchy: LEFT > FORWARD. #24 is the primary target."},
+{id:8,p:"#29",tech:"Forward Clamp",dir:"Backward",clk:6,dist:"Med",ht:"Bounce",out:"Win",poss:"Wing",who:"Right Wing",wing:"-",ttp:4.8,spd:"Slow",ven:"vs Hopkins",note:"Ball went 6 o'clock (backward) UNEXPECTEDLY — technique didn't execute cleanly. Right-side wing had to scramble to recover. Slow 4.8s possession. Shows vulnerability when primary direction fails."},
+{id:9,p:"#29",tech:"Backward Push",dir:"Back-Left",clk:7,dist:"Med",ht:"Ground",out:"Win",poss:"Wing",who:"Left Wing",wing:"-",ttp:3.6,spd:"Avg",ven:"at Liberty",note:"Deliberate backward push at Liberty — different strategy vs different opponent. May indicate game-plan adjustment for specific matchups. Left wing still involved even on backward draws."},
+{id:10,p:"#29",tech:"Backward Push",dir:"Back-Left",clk:7,dist:"Med",ht:"Ground",out:"Win",poss:"Wing",who:"Left Wing",wing:"-",ttp:3.4,spd:"Avg",ven:"at Liberty",note:"Repeat backward-side pattern at Liberty; consistent secondary technique. Two consecutive backward pushes suggest this was planned vs Liberty, not random. Still goes LEFT even when going backward."},
+{id:11,p:"#29",tech:"Go-With Grab",dir:"Forward",clk:12,dist:"Short",ht:"Air",out:"Win",poss:"Clean",who:"Draw Taker",wing:"-",ttp:1.5,spd:"Fast",ven:"JMU Home",note:"#29 goes WITH the ball and grabs directly — self-draw. FASTEST possession of all 32 clips at 1.5s. No wing involvement needed. High-skill technique. Ball popped up and #29 snatched it from air."},
+{id:12,p:"#29",tech:"Directed Forward",dir:"Forward",clk:12,dist:"Med",ht:"Air",out:"Win",poss:"Clean",who:"Left Wing",wing:"#11",ttp:2.2,spd:"Fast",ven:"JMU Home",note:"Pre-planned directed draw to #11 who secured cleanly. Excellent 2.2s execution. TELL: watch for draw taker making eye contact with #11 pre-whistle — this signals a directed draw. #11 positions forward."},
+{id:13,p:"#29",tech:"Forward Power",dir:"Fwd-Left",clk:10,dist:"Long",ht:"Air",out:"Win",poss:"Wing",who:"Left Wing",wing:"-",ttp:4.2,spd:"Avg",ven:"JMU Home",note:"Ball traveled LONG distance — riskier variation. Wing had to chase the ball rather than catch in position. 4.2s possession shows the cost of going long. Ball went airborne. If we can force long draws, their win % drops."},
+{id:14,p:"#29",tech:"Open Up",dir:"Fwd-Right",clk:2,dist:"Med",ht:"Air",out:"Win",poss:"Clean",who:"Right Wing",wing:"#24",ttp:2.5,spd:"Fast",ven:"at USF",note:"DIFFERENT DIRECTION — forward-RIGHT! One of only 3 right-side draws in entire dataset. #24 somehow also on the right side here. Shows rare versatility but not common. Open Up technique pops ball into air."},
+{id:15,p:"#29",tech:"Open Up",dir:"Forward",clk:12,dist:"Med",ht:"Air",out:"Win",poss:"Wing",who:"Draw Taker",wing:"-",ttp:3.0,spd:"Fast",ven:"at Hopkins",note:"Open up straight forward (12 o'clock); ball popped up in air. #29 secured herself or nearest teammate got it. Open Up is #29's secondary technique — less directional control but harder to counter."},
+{id:16,p:"#29",tech:"Open Up",dir:"Left",clk:9,dist:"Med",ht:"Air",out:"Win",poss:"Wing",who:"Left Wing",wing:"-",ttp:3.3,spd:"Avg",ven:"JMU Home",note:"Open up to left side; ball goes airborne to side wing. Third Open Up variation — this one still goes LEFT showing the directional bias persists even with different techniques."},
+{id:17,p:"#29",tech:"Aggressive Clamp",dir:"Forward",clk:12,dist:"Short",ht:"Ground",out:"Win",poss:"Scramble",who:"Ground Ball",wing:"-",ttp:5.2,spd:"Slow",ven:"at USF",note:"Very aggressive play — won through HUSTLE not technique. Ground ball scramble with 5.2s TTP — slowest JMU win. Shows #29 can compete physically but this is not where they want to be. Grub = ground ball recovery."},
+{id:18,p:"#29",tech:"Go-With Pop",dir:"Forward",clk:12,dist:"Short",ht:"Air",out:"50-50",poss:"Scramble",who:"Scramble",wing:"-",ttp:6.0,spd:"Slow",ven:"at USF",note:"ALL 3 circle players jumped for air ball — PURE CHAOS. 50-50 outcome with 6s before anyone had possession. KEY INSIGHT: when the draw becomes an air ball, JMU's structural advantage evaporates. Force air balls."},
+{id:19,p:"#29",tech:"Fwd Clamp (COUNTERED)",dir:"Fwd-Left",clk:9,dist:"Short",ht:"Ground",out:"Loss",poss:"Opponent",who:"Opponent",wing:"-",ttp:0,spd:"-",ven:"at Hopkins",note:"CRITICAL COUNTER FILM: Opponent physically CHECKED #29's stick during draw motion. Disrupted FSW pattern completely. #29 lost control and couldn't redirect. JMU LOST. This is the #1 counter-tactic to practice."},
+{id:20,p:"#29",tech:"Fwd Clamp (COUNTERED)",dir:"Forward",clk:12,dist:"Med",ht:"Ground",out:"Loss",poss:"Opponent",who:"Opponent",wing:"-",ttp:0,spd:"-",ven:"at Hopkins",note:"CRITICAL COUNTER FILM: Opponent used excellent SETUP POSITIONING to neutralize #29's forward push. Clean loss. Combined with clip 19, proves that physical disruption is 100% effective (2/2) against #29."},
+{id:21,p:"#29",tech:"Backward Push",dir:"Back-Left",clk:8,dist:"Med",ht:"Ground",out:"Loss",poss:"Opponent",who:"Opponent",wing:"-",ttp:0,spd:"-",ven:"vs Georgetown",note:"Georgetown backward-side push beat #29; clean loss. #29's backward technique was outmatched. Shows backward direction is a weaker option that can be exploited by prepared opponents."},
+{id:22,p:"#29",tech:"Forward Clamp",dir:"Forward",clk:12,dist:"Long",ht:"Air",out:"Loss",poss:"Opponent",who:"Opponent",wing:"-",ttp:0,spd:"-",ven:"vs Georgetown",note:"Georgetown out-powered #29; ball went long and Georgetown secured. #29 outmatched on pure POWER. Shows that matching or exceeding her force on the clamp can create turnovers. Ball too far for JMU wings."},
+{id:23,p:"#29",tech:"Backward Push",dir:"Back-Left",clk:7,dist:"Med",ht:"Ground",out:"Win",poss:"Wing",who:"Left Wing",wing:"-",ttp:3.8,spd:"Avg",ven:"vs Georgetown",note:"Georgetown tried backward-side but JMU wings recovered — adaptive win. Shows JMU's left wing support is good enough to rescue even imperfect draws. Wing depth is a strength."},
+{id:24,p:"#29",tech:"Backward Push",dir:"Back-Left",clk:7,dist:"Med",ht:"Ground",out:"Win",poss:"Wing",who:"Left Wing",wing:"-",ttp:3.5,spd:"Avg",ven:"vs Georgetown",note:"Same pattern as clip 23; wings again rescued the draw. JMU's wing support compensates for technique failures. Consistent left-wing recovery even when ball goes backward."},
+{id:25,p:"#29",tech:"Slice",dir:"Right",clk:3,dist:"Med",ht:"Air",out:"Win",poss:"Clean",who:"Right Wing",wing:"Dino",ttp:2.0,spd:"Fast",ven:"vs Georgetown",note:"RARE: Slice technique directed to RIGHT side to player 'Dino'. Clean fast win at 2.0s. Only 3 right-side draws in dataset. This is a situational wrinkle — not JMU's default but shows they CAN go right."},
+{id:26,p:"#29",tech:"Directed Push",dir:"Right",clk:3,dist:"Med",ht:"Air",out:"Win",poss:"Clean",who:"Right Wing",wing:"Dino",ttp:2.3,spd:"Fast",ven:"vs Georgetown",note:"Repeated Dino target; shows trust in this specific wing player on right side. Clean right-side execution 2.3s. If JMU starts going right in your game, it means they're adjusting — be alert for this wrinkle."},
+{id:27,p:"#17",tech:"Behind Rake",dir:"Backward",clk:6,dist:"Med",ht:"Ground",out:"Win",poss:"Wing",who:"Left Wing",wing:"-",ttp:3.5,spd:"Avg",ven:"JMU Home",note:"#17 uses behind/backward RAKE — fundamentally DIFFERENT style from #29's clamp. Ball goes 6 o'clock (backward). Punishes teams pre-committed to countering #29's left pattern. If you see #17, switch to neutral positioning."},
+{id:28,p:"#17",tech:"Slice + Box",dir:"Left",clk:9,dist:"Short",ht:"Ground",out:"Win",poss:"Scramble",who:"Ground Ball",wing:"-",ttp:5.0,spd:"Slow",ven:"JMU Home",note:"#17 slices then boxes out physically; ground ball scramble. Won through PHYSICALITY not finesse. 5.0s TTP is slow. #17 is more physical than #29 — expect body contact in the circle."},
+{id:29,p:"#17",tech:"Forward + DL",dir:"Fwd-Left",clk:10,dist:"Med",ht:"Air",out:"Win",poss:"Clean",who:"Left Wing",wing:"#11",ttp:2.4,spd:"Fast",ven:"JMU Home",note:"#17 forward draw-left to #11; CLEAN WIN at 2.4s. #17 can MIMIC #29's forward style — so scouting #17 as 'backward only' would be a mistake. Also uses #11 as directed target."},
+{id:30,p:"#18",tech:"Forward Launch",dir:"Fwd-Right",clk:2,dist:"Long",ht:"Air",out:"Loss",poss:"Opponent",who:"Opponent",wing:"-",ttp:0,spd:"-",ven:"at Maryland",note:"#18 LAUNCHED ball too far forward-right — LOST CONTROL. Over-powered technique sent ball beyond JMU wing recovery range. This is #18's fundamental problem: too much power, not enough precision. Exploit."},
+{id:31,p:"#18",tech:"Forward + DL",dir:"Fwd-Left",clk:9,dist:"Long",ht:"Air",out:"Loss",poss:"Opponent",who:"Opponent",wing:"-",ttp:0,spd:"-",ven:"Night Game",note:"#18 forward draw-left went TOO FAR; clean loss. Same distance-control issue as clip 30. Ball went long and JMU wings couldn't recover. #18 lacks the touch that #29 has."},
+{id:32,p:"#18",tech:"Forward Power",dir:"Forward",clk:12,dist:"Long",ht:"Air",out:"Win",poss:"Clean",who:"Right Wing",wing:"-",ttp:2.8,spd:"Fast",ven:"Night Game",note:"#18 forward push with power — CLEAN WIN this time. When ball stays in range, #18 can be effective. Inconsistent: 1 win, 2 losses. The difference is whether the ball stays in recovery range for wings."},
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let curPlayer="All", curClip="all";
+let charts={};
+
+function getFiltered(){
+  let d=ALL;
+  if(curPlayer!=="All") d=d.filter(x=>x.p===curPlayer);
+  return d;
+}
+function getClipData(id){ return ALL.find(x=>x.id===parseInt(id)); }
+
+// ============================================================
+// FILTER CONTROLS
+// ============================================================
+function setPlayer(p,btn){
+  curPlayer=p; curClip="all";
+  document.querySelectorAll('.filter-bar .fbtn').forEach(b=>{b.className='fbtn';});
+  btn.className='fbtn '+(p==='All'?'on':p==='#29'?'on29':p==='#17'?'on17':'on18');
+  populateClipSelect();
+  renderAll();
+}
+function selectClip(v){
+  curClip=v;
+  if(v!=="all"){
+    switchTab('clipview',document.querySelector('[data-tab="clipview"]'));
+  }
+  renderAll();
+}
+function populateClipSelect(){
+  const sel=document.getElementById('clipSelect');
+  const f=getFiltered();
+  sel.innerHTML='<option value="all">All Clips — Aggregate View</option>';
+  f.forEach(d=>{
+    sel.innerHTML+=`<option value="${d.id}">Clip ${d.id} — ${d.p} ${d.tech} → ${d.out}</option>`;
+  });
+}
+
+// ============================================================
+// TAB SWITCHING
+// ============================================================
+function switchTab(id,btn){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.add('hidden'));
+  if(btn) btn.classList.add('active');
+  document.getElementById('tab-'+id).classList.remove('hidden');
+}
+
+// ============================================================
+// CHART HELPER
+// ============================================================
+function destroyChart(key){ if(charts[key]){charts[key].destroy();delete charts[key];} }
+const cStyle={background:'#1e293b',border:'1px solid #475569',borderRadius:'8px',color:'#f8fafc'};
+const cOpts=(o={})=>({responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{size:10}}},...(o.plugins||{})},scales:o.scales||{}});
+
+// ============================================================
+// RENDER ALL
+// ============================================================
+function renderAll(){
+  const f=getFiltered();
+  const status=curClip!=="all"?`Viewing Clip ${curClip}`:`Showing ${f.length} of 32 draws`+(curPlayer!=="All"?` (${curPlayer})`:'');
+  document.getElementById('filter-status').textContent=status;
+  document.getElementById('clipSelect').value=curClip;
+  renderSummary(f);
+  renderClipView();
+  renderField(f);
+  renderWings(f);
+  renderClipsTable(f);
+  renderTechnique(f);
+  renderPlayers();
+  renderStrategy();
+}
+
+// ============================================================
+// SUMMARY TAB
+// ============================================================
+function renderSummary(f){
+  const el=document.getElementById('tab-summary');
+  const w=f.filter(d=>d.out==="Win").length,l=f.filter(d=>d.out==="Loss").length,ft=f.filter(d=>d.out==="50-50").length;
+  const pct=f.length>0?(w/f.length*100).toFixed(1):"0";
+  const dirMap={};f.forEach(d=>{dirMap[d.dir]=(dirMap[d.dir]||0)+1;});
+  const topDir=Object.entries(dirMap).sort((a,b)=>b[1]-a[1])[0];
+  const techMap={};f.forEach(d=>{const t=d.tech.replace(/ \(COUNTERED\)/,'');techMap[t]=(techMap[t]||0)+1;});
+  const topTech=Object.entries(techMap).sort((a,b)=>b[1]-a[1])[0];
+
+  let html=`<div class="grid g6">`;
+  const kpis=[{l:"Total Draws",v:f.length,c:"var(--text)"},{l:"JMU Win Rate",v:pct+"%",c:parseFloat(pct)>60?"var(--win)":"var(--loss)"},{l:"Wins",v:w,c:"var(--win)"},{l:"Losses",v:l,c:"var(--loss)"},{l:"#1 Direction",v:topDir?topDir[0]:"—",c:"var(--left)",s:topDir?`${(topDir[1]/f.length*100).toFixed(0)}%`:""},{l:"#1 Technique",v:topTech?topTech[0].split(' ').slice(0,2).join(' '):"—",c:"var(--p29)",s:topTech?topTech[1]+"x":""}];
+  kpis.forEach(k=>{html+=`<div class="card stat"><div class="val" style="color:${k.c}">${k.v}</div><div class="lbl">${k.l}</div>${k.s?`<div class="sub2">${k.s}</div>`:''}</div>`;});
+  html+=`</div>`;
+
+  html+=`<div class="grid g3"><div class="card"><h3>Win/Loss</h3><div class="chart-wrap" style="height:220px"><canvas id="cs-wl"></canvas></div></div>`;
+  html+=`<div class="card"><h3>Direction Radar</h3><div class="chart-wrap" style="height:220px"><canvas id="cs-radar"></canvas></div></div>`;
+  html+=`<div class="card"><h3>Possession Type</h3><div class="chart-wrap" style="height:220px"><canvas id="cs-poss"></canvas></div></div></div>`;
+
+  html+=`<div class="grid g2"><div class="card"><h3>Win Contribution</h3><div class="chart-wrap" style="height:220px"><canvas id="cs-contrib"></canvas></div></div>`;
+  html+=`<div class="card"><h3>Player Win Rates</h3><div id="s-player-bars"></div></div></div>`;
+  el.innerHTML=html;
+
+  // Charts
+  destroyChart('cs-wl');
+  charts['cs-wl']=new Chart(document.getElementById('cs-wl'),{type:'doughnut',data:{labels:['Wins','Losses','50-50'],datasets:[{data:[w,l,ft],backgroundColor:['#22c55e','#ef4444','#f59e0b'],borderWidth:0}]},options:cOpts()});
+
+  destroyChart('cs-radar');
+  const rb={"12 (Fwd)":0,"3 (Right)":0,"6 (Back)":0,"9 (Left)":0};
+  f.forEach(d=>{const c=d.clk;if(c>=11||c<=1)rb["12 (Fwd)"]++;else if(c>=2&&c<=4)rb["3 (Right)"]++;else if(c>=5&&c<=7)rb["6 (Back)"]++;else rb["9 (Left)"]++;});
+  charts['cs-radar']=new Chart(document.getElementById('cs-radar'),{type:'radar',data:{labels:Object.keys(rb),datasets:[{label:'Count',data:Object.values(rb),backgroundColor:'rgba(129,140,248,.2)',borderColor:'#818cf8',pointBackgroundColor:'#818cf8'}]},options:{...cOpts(),scales:{r:{ticks:{color:'#64748b',backdropColor:'transparent'},grid:{color:'#334155'},pointLabels:{color:'#94a3b8',font:{size:10}}}}}});
+
+  destroyChart('cs-poss');
+  const pm={};f.forEach(d=>{pm[d.poss]=(pm[d.poss]||0)+1;});
+  charts['cs-poss']=new Chart(document.getElementById('cs-poss'),{type:'doughnut',data:{labels:Object.keys(pm),datasets:[{data:Object.values(pm),backgroundColor:['#a78bfa','#22d3ee','#22c55e','#f59e0b','#ef4444','#ec4899'],borderWidth:0}]},options:cOpts()});
+
+  destroyChart('cs-contrib');
+  const cm={};f.filter(d=>d.out==="Win").forEach(d=>{cm[d.who]=(cm[d.who]||0)+1;});
+  const ce=Object.entries(cm).sort((a,b)=>b[1]-a[1]);
+  charts['cs-contrib']=new Chart(document.getElementById('cs-contrib'),{type:'bar',data:{labels:ce.map(e=>e[0]),datasets:[{label:'Wins',data:ce.map(e=>e[1]),backgroundColor:'#818cf8',borderRadius:6}]},options:{...cOpts({scales:{x:{ticks:{color:'#94a3b8'},grid:{display:false}},y:{ticks:{color:'#94a3b8'},grid:{color:'#334155'}}}}),indexAxis:'y',plugins:{legend:{display:false}}}});
+
+  // Player bars
+  const ps={};ALL.forEach(d=>{ps[d.p]=ps[d.p]||{w:0,l:0,t:0};ps[d.p].t++;if(d.out==="Win")ps[d.p].w++;else if(d.out==="Loss")ps[d.p].l++;});
+  const pCol=p=>p==="#29"?"#a78bfa":p==="#17"?"#22d3ee":"#fbbf24";
+  document.getElementById('s-player-bars').innerHTML=Object.entries(ps).map(([p,s])=>{
+    const pct=Math.round(s.w/s.t*100);
+    return `<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:13px;font-weight:700;color:${pCol(p)}">JMU ${p}</span><span style="font-size:12px;color:var(--muted)">${s.w}W-${s.l}L (${pct}%) | ${s.t} draws</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${pCol(p)}"></div></div></div>`;
+  }).join('');
+}
+
+// ============================================================
+// CLIP DETAIL TAB — SINGLE CLIP DEEP DIVE
+// ============================================================
+function renderClipView(){
+  const el=document.getElementById('tab-clipview');
+  if(curClip==="all"){
+    el.innerHTML=`<div class="card" style="text-align:center;padding:60px"><h2 style="margin-bottom:8px;color:var(--muted)">Select a Clip to Analyze</h2><p style="color:var(--dim);font-size:13px">Use the clip dropdown in the filter bar above, or click any row in the "All Clips Table" tab.</p></div>`;
+    return;
+  }
+  const d=getClipData(curClip);
+  if(!d){el.innerHTML='<p>Clip not found.</p>';return;}
+
+  const oc=d.out==="Win"?"pw":d.out==="Loss"?"pl":"pf";
+  const pc=d.p==="#29"?"p29c":d.p==="#17"?"p17c":"p18c";
+  const pCol=d.p==="#29"?"var(--p29)":d.p==="#17"?"var(--p17)":"var(--p18)";
+
+  let html=`<div class="clip-detail">`;
+  html+=`<button class="close-btn" onclick="curClip='all';document.getElementById('clipSelect').value='all';renderAll();">✕</button>`;
+  html+=`<h2><span class="pill ${pc}">${d.p}</span> Clip ${d.id} — ${d.tech} <span class="pill ${oc}" style="font-size:13px">${d.out}</span></h2>`;
+
+  // Detail grid
+  html+=`<div class="detail-grid">`;
+  const fields=[
+    {l:"Technique",v:d.tech},{l:"Direction",v:`${d.dir} (${d.clk} o'clock)`},{l:"Ball Distance",v:d.dist},
+    {l:"Ball Height",v:d.ht},{l:"Outcome",v:d.out},{l:"Possession Type",v:d.poss},
+    {l:"Primary Contributor",v:d.who},{l:"Wing Player",v:d.wing||"—"},{l:"Time to Possession",v:d.ttp>0?d.ttp+"s":"N/A"},
+    {l:"Reaction Speed",v:d.spd},{l:"Venue / Game",v:d.ven},{l:"Draw Taker",v:`JMU ${d.p}`},
+  ];
+  fields.forEach(fld=>{
+    let color="var(--text)";
+    if(fld.l==="Outcome") color=d.out==="Win"?"var(--win)":d.out==="Loss"?"var(--loss)":"var(--fifty)";
+    if(fld.l==="Time to Possession"&&d.ttp>0) color=d.ttp<=2.5?"var(--win)":d.ttp<=4?"var(--fifty)":"var(--loss)";
+    html+=`<div class="detail-field"><div class="df-label">${fld.l}</div><div class="df-val" style="color:${color}">${fld.v}</div></div>`;
+  });
+  html+=`</div>`;
+
+  // Detailed notes
+  html+=`<div class="detail-notes"><strong style="color:var(--acc)">Detailed Analysis:</strong> ${d.note}</div>`;
+
+  // Mini field diagram for this clip
+  html+=`<div class="detail-mini-field"><h3 style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin:14px 0 8px">Ball Trajectory — Clip ${d.id}</h3>`;
+  html+=`<svg viewBox="0 0 400 300" style="max-width:400px;width:100%;height:auto">`;
+  html+=`<rect width="400" height="300" fill="#1a3d1a" rx="8"/>`;
+  html+=`<circle cx="200" cy="150" r="60" fill="none" stroke="#fff" stroke-width="1.5" opacity=".4"/>`;
+  html+=`<circle cx="200" cy="150" r="3" fill="#fff"/>`;
+  // Labels
+  html+=`<text x="200" y="20" fill="#22c55e" font-size="10" font-weight="700" text-anchor="middle">12 (FWD)</text>`;
+  html+=`<text x="200" y="290" fill="#ef4444" font-size="10" font-weight="700" text-anchor="middle">6 (BACK)</text>`;
+  html+=`<text x="15" y="154" fill="#3b82f6" font-size="10" font-weight="700">9 (L)</text>`;
+  html+=`<text x="355" y="154" fill="#f97316" font-size="10" font-weight="700">3 (R)</text>`;
+  // Draw taker positions
+  html+=`<circle cx="192" cy="150" r="7" fill="${pCol}" opacity=".7"/><text x="192" y="168" fill="${pCol}" font-size="7" text-anchor="middle">JMU</text>`;
+  html+=`<circle cx="208" cy="150" r="7" fill="var(--acc)" opacity=".7"/><text x="208" y="168" fill="var(--acc)" font-size="7" text-anchor="middle">YOU</text>`;
+  // Arrow for this clip
+  const distR={Short:45,Med:85,Long:130};
+  const angle=(d.clk*30-90)*Math.PI/180;
+  const r=distR[d.dist]||85;
+  const ex=200+r*Math.cos(angle),ey=150+r*Math.sin(angle);
+  const col=d.out==="Win"?"#22c55e":d.out==="Loss"?"#ef4444":"#f59e0b";
+  html+=`<line x1="200" y1="150" x2="${ex}" y2="${ey}" stroke="${col}" stroke-width="3" opacity=".8"/>`;
+  const aa=Math.atan2(ey-150,ex-200);
+  html+=`<polygon points="${ex},${ey} ${ex-10*Math.cos(aa-.4)},${ey-10*Math.sin(aa-.4)} ${ex-10*Math.cos(aa+.4)},${ey-10*Math.sin(aa+.4)}" fill="${col}" opacity=".8"/>`;
+  // Landing zone circle
+  html+=`<circle cx="${ex}" cy="${ey}" r="12" fill="${col}" opacity=".15" stroke="${col}" stroke-width="1"/>`;
+  html+=`<text x="${ex}" y="${ey+4}" fill="${col}" font-size="9" font-weight="700" text-anchor="middle">${d.clk}</text>`;
+  // Wing position if applicable
+  if(d.who.includes("Left Wing")){
+    html+=`<circle cx="110" cy="110" r="10" fill="rgba(59,130,246,.3)" stroke="#3b82f6" stroke-width="1.5"/>`;
+    html+=`<text x="110" y="114" fill="#3b82f6" font-size="8" font-weight="700" text-anchor="middle">${d.wing||'LW'}</text>`;
+  }
+  if(d.who.includes("Right Wing")){
+    html+=`<circle cx="300" cy="110" r="10" fill="rgba(249,115,22,.3)" stroke="#f97316" stroke-width="1.5"/>`;
+    html+=`<text x="300" y="114" fill="#f97316" font-size="8" font-weight="700" text-anchor="middle">${d.wing||'RW'}</text>`;
+  }
+  html+=`</svg></div>`;
+  html+=`</div>`;
+
+  // Context — what other clips look similar?
+  const similar=ALL.filter(x=>x.id!==d.id&&x.p===d.p&&x.tech.replace(/ \(COUNTERED\)/,'')===d.tech.replace(/ \(COUNTERED\)/,'')).slice(0,5);
+  if(similar.length>0){
+    html+=`<div class="card"><h3>Similar Clips (Same Player + Technique)</h3><table><thead><tr><th>Clip</th><th>Direction</th><th>Outcome</th><th>Poss</th><th>TTP</th><th>Notes</th></tr></thead><tbody>`;
+    similar.forEach(s=>{
+      const sc=s.out==="Win"?"pw":s.out==="Loss"?"pl":"pf";
+      html+=`<tr class="clickable" onclick="curClip='${s.id}';document.getElementById('clipSelect').value='${s.id}';renderAll();"><td><strong>${s.id}</strong></td><td>${s.dir} (${s.clk})</td><td><span class="pill ${sc}">${s.out}</span></td><td>${s.poss}</td><td>${s.ttp||'-'}</td><td style="font-size:10px;color:var(--dim);max-width:250px">${s.note.substring(0,100)}...</td></tr>`;
+    });
+    html+=`</tbody></table></div>`;
+  }
+
+  // Navigation
+  const allIds=getFiltered().map(x=>x.id);
+  const idx=allIds.indexOf(d.id);
+  const prev=idx>0?allIds[idx-1]:null;
+  const next=idx<allIds.length-1?allIds[idx+1]:null;
+  html+=`<div style="display:flex;justify-content:space-between;margin-top:14px">`;
+  html+=prev?`<button class="fbtn" onclick="curClip='${prev}';document.getElementById('clipSelect').value='${prev}';renderAll();">← Clip ${prev}</button>`:`<span></span>`;
+  html+=next?`<button class="fbtn" onclick="curClip='${next}';document.getElementById('clipSelect').value='${next}';renderAll();">Clip ${next} →</button>`:`<span></span>`;
+  html+=`</div>`;
+
+  el.innerHTML=html;
+}
+
+// ============================================================
+// FIELD MOVEMENT TAB
+// ============================================================
+function renderField(f){
+  const el=document.getElementById('tab-field');
+  let html=`<div class="grid g2">`;
+  html+=`<div class="card"><h3>Ball Trajectory Map — ${f.length} Draws</h3><p style="font-size:11px;color:var(--dim);margin-bottom:10px">Green = JMU Win, Red = Loss, Yellow = 50-50. Arrow length = ball distance.</p><svg id="fld-all" viewBox="0 0 500 400" style="max-width:100%;height:auto"></svg></div>`;
+  html+=`<div class="card"><h3>Direction Heatmap</h3><p style="font-size:11px;color:var(--dim);margin-bottom:10px">Zone frequency — darker = more draws landing there.</p><svg id="fld-heat" viewBox="0 0 500 400" style="max-width:100%;height:auto"></svg></div></div>`;
+  html+=`<div class="grid g2"><div class="card"><h3>Win Rate by Zone</h3><div class="chart-wrap" style="height:280px"><canvas id="cf-zone"></canvas></div></div>`;
+  html+=`<div class="card"><h3>Key Field Insights</h3>`;
+  html+=`<div class="insight"><div class="dot" style="background:var(--loss)"></div><span><strong>Left Channel Dominance:</strong> Majority of draws cluster at 9-10 o'clock (forward-left). This creates a predictable traffic pattern.</span></div>`;
+  html+=`<div class="insight"><div class="dot" style="background:var(--fwd)"></div><span><strong>Forward Corridor (12):</strong> Secondary direction — typically Open Up or Go-With techniques. More air balls here.</span></div>`;
+  html+=`<div class="insight"><div class="dot" style="background:var(--right)"></div><span><strong>Right Side Desert:</strong> Near-zero traffic at 2-4 o'clock. JMU's wing support doesn't cover the right.</span></div>`;
+  html+=`<div class="insight"><div class="dot" style="background:var(--fifty)"></div><span><strong>Long Balls = Vulnerability:</strong> When ball travels long distance, JMU's win rate drops. Force over-powered draws.</span></div>`;
+  html+=`</div></div>`;
+  el.innerHTML=html;
+
+  // Draw trajectory SVG
+  const svg=document.getElementById('fld-all');
+  let s=`<rect width="500" height="400" fill="#1a3d1a" rx="8"/><circle cx="250" cy="200" r="80" fill="none" stroke="#fff" stroke-width="2" opacity=".4"/><circle cx="250" cy="200" r="4" fill="#fff"/>`;
+  s+=`<text x="250" y="20" fill="#22c55e" font-size="10" font-weight="700" text-anchor="middle">ATTACKING (12)</text>`;
+  s+=`<text x="250" y="392" fill="#ef4444" font-size="10" font-weight="700" text-anchor="middle">DEFENSIVE (6)</text>`;
+  s+=`<text x="12" y="204" fill="#3b82f6" font-size="10" font-weight="700">LEFT (9)</text>`;
+  s+=`<text x="440" y="204" fill="#f97316" font-size="10" font-weight="700">RIGHT (3)</text>`;
+  const distM={Short:60,Med:110,Long:170};
+  f.forEach(d=>{
+    const r2=distM[d.dist]||110;
+    const a2=(d.clk*30-90)*Math.PI/180;
+    const ex=250+r2*Math.cos(a2),ey=200+r2*Math.sin(a2);
+    const c2=d.out==="Win"?"#22c55e":d.out==="Loss"?"#ef4444":"#f59e0b";
+    const op=d.out==="Win"?.5:.85;
+    s+=`<line x1="250" y1="200" x2="${ex}" y2="${ey}" stroke="${c2}" stroke-width="2" opacity="${op}"/>`;
+    const aa=Math.atan2(ey-200,ex-250);
+    s+=`<polygon points="${ex},${ey} ${ex-8*Math.cos(aa-.4)},${ey-8*Math.sin(aa-.4)} ${ex-8*Math.cos(aa+.4)},${ey-8*Math.sin(aa+.4)}" fill="${c2}" opacity="${op}"/>`;
+    s+=`<text x="${ex+(ex>250?6:-6)}" y="${ey-5}" fill="${c2}" font-size="7" opacity=".7" text-anchor="${ex>250?'start':'end'}">${d.id}</text>`;
+  });
+  svg.innerHTML=s;
+
+  // Heatmap
+  const hsvg=document.getElementById('fld-heat');
+  let h=`<rect width="500" height="400" fill="#1a3d1a" rx="8"/><circle cx="250" cy="200" r="80" fill="none" stroke="#fff" stroke-width="1.5" opacity=".3"/><circle cx="250" cy="200" r="3" fill="#fff"/>`;
+  const zones=[{l:"Left Wing",cx:120,cy:130,c:0},{l:"Fwd-Left\n(Hot)",cx:180,cy:100,c:0},{l:"Forward",cx:250,cy:75,c:0},{l:"Fwd-Right",cx:340,cy:100,c:0},{l:"Right Wing",cx:400,cy:130,c:0},{l:"Back-Left",cx:150,cy:290,c:0},{l:"Backward",cx:250,cy:320,c:0},{l:"Inside\nCircle",cx:250,cy:200,c:0}];
+  f.forEach(d=>{const c=d.clk;if(d.dist==="Short")zones[7].c++;else if(c===9)zones[0].c++;else if(c===10)zones[1].c++;else if(c===12||c===11||c===1)zones[2].c++;else if(c===2)zones[3].c++;else if(c===3)zones[4].c++;else if(c===7||c===8)zones[5].c++;else if(c===6)zones[6].c++;else zones[2].c++;});
+  const mx=Math.max(...zones.map(z=>z.c),1);
+  zones.forEach(z=>{const i=z.c/mx;const r=22+i*40;const al=Math.round((.08+i*.5)*255).toString(16).padStart(2,'0');
+    h+=`<circle cx="${z.cx}" cy="${z.cy}" r="${r}" fill="#818cf8${al}" stroke="#818cf8" stroke-width="1" opacity=".8"/>`;
+    h+=`<text x="${z.cx}" y="${z.cy-3}" fill="#f8fafc" font-size="10" font-weight="700" text-anchor="middle">${z.c}</text>`;
+    z.l.split('\n').forEach((ln,i2)=>{h+=`<text x="${z.cx}" y="${z.cy+9+i2*10}" fill="#94a3b8" font-size="8" text-anchor="middle">${ln}</text>`;});
+  });
+  hsvg.innerHTML=h;
+
+  // Zone win rate chart
+  destroyChart('cf-zone');
+  const zw={};f.forEach(d=>{const c=d.clk;let z=c>=8&&c<=10?"Left/Fwd-Left":c>=11||c<=1?"Forward":c>=2&&c<=4?"Right":"Backward";zw[z]=zw[z]||{w:0,t:0};zw[z].t++;if(d.out==="Win")zw[z].w++;});
+  const ze=Object.entries(zw).filter(e=>e[1].t>0);
+  const zcol=n=>n.includes("Left")?"#3b82f6":n==="Forward"?"#22c55e":n==="Right"?"#f97316":"#ef4444";
+  charts['cf-zone']=new Chart(document.getElementById('cf-zone'),{type:'bar',data:{labels:ze.map(e=>`${e[0]} (${e[1].t})`),datasets:[{label:'JMU Win %',data:ze.map(e=>Math.round(e[1].w/e[1].t*100)),backgroundColor:ze.map(e=>zcol(e[0])),borderRadius:6}]},options:{...cOpts({scales:{x:{ticks:{color:'#94a3b8'},grid:{display:false}},y:{max:100,ticks:{color:'#94a3b8'},grid:{color:'#334155'}}}}),plugins:{legend:{display:false}}}});
+}
+
+// ============================================================
+// WINGS TAB
+// ============================================================
+function renderWings(f){
+  const el=document.getElementById('tab-wings');
+  let html=`<div class="grid g2">`;
+  html+=`<div class="card"><h3>Wing Contribution to Wins</h3><div class="chart-wrap" style="height:260px"><canvas id="cw-contrib"></canvas></div></div>`;
+  html+=`<div class="card"><h3>Wing Player Field Map</h3><svg id="fld-wings" viewBox="0 0 500 400" style="max-width:100%;height:auto"></svg></div></div>`;
+
+  html+=`<div class="grid g3">`;
+  // Left Wing info
+  html+=`<div class="card"><h3>Left Wing Channel</h3>`;
+  html+=`<div class="wing-card"><h4 style="color:var(--left)">#24 — Primary Left Wing</h4><div style="font-size:11px;color:var(--muted);line-height:1.7"><div>Appearances: <strong style="color:var(--text)">7 clips</strong></div><div>Role: <strong style="color:var(--text)">Boxing specialist</strong></div><div>Win rate: <strong style="color:var(--win)">100%</strong></div><div>Avg TTP: <strong style="color:var(--text)">3.2s</strong></div><div style="margin-top:6px;padding:6px;background:rgba(59,130,246,.08);border-radius:6px;border-left:2px solid var(--left);font-size:10px"><strong>Scout:</strong> Positions early, boxes physically. Your right wing must beat her to the spot.</div></div></div>`;
+  html+=`<div class="wing-card" style="margin-top:8px"><h4 style="color:var(--left)">#11 — Outlet Receiver</h4><div style="font-size:11px;color:var(--muted);line-height:1.7"><div>Appearances: <strong style="color:var(--text)">3 clips</strong></div><div>Role: <strong style="color:var(--text)">Directed draw target</strong></div><div>Win rate: <strong style="color:var(--win)">100%</strong></div><div>Avg TTP: <strong style="color:var(--text)">2.3s (fastest)</strong></div><div style="margin-top:6px;padding:6px;background:rgba(59,130,246,.08);border-radius:6px;border-left:2px solid var(--left);font-size:10px"><strong>Tell:</strong> Watch for draw taker eye contact with #11 pre-whistle.</div></div></div></div>`;
+
+  // Right Wing info
+  html+=`<div class="card"><h3>Right Wing Channel</h3>`;
+  html+=`<div class="wing-card"><h4 style="color:var(--right)">"Dino" — Situational Right Wing</h4><div style="font-size:11px;color:var(--muted);line-height:1.7"><div>Appearances: <strong style="color:var(--text)">2 clips only</strong></div><div>Win rate: <strong style="color:var(--win)">100%</strong></div><div>Avg TTP: <strong style="color:var(--text)">2.1s</strong></div></div></div>`;
+  html+=`<div class="wing-card" style="margin-top:8px"><h4 style="color:var(--dim)">Right Side — Structurally Weak</h4><div style="font-size:11px;color:var(--muted);line-height:1.7"><div>Total right-side draws: <strong style="color:var(--text)">3 of 32 (9.4%)</strong></div><div style="margin-top:6px;padding:6px;background:rgba(239,68,68,.08);border-radius:6px;border-left:2px solid var(--loss);font-size:10px"><strong>Exploit:</strong> Push YOUR draws RIGHT. JMU's right-wing support is undermanned.</div></div></div></div>`;
+
+  // Timing
+  html+=`<div class="card"><h3>Wing Reaction Timing</h3><div class="chart-wrap" style="height:240px"><canvas id="cw-timing"></canvas></div><div style="font-size:11px;color:var(--dim);margin-top:8px">Green = fast (&lt;2.5s), Yellow = average, Red = slow (&gt;4s)</div></div></div>`;
+
+  // Win sources breakdown
+  html+=`<div class="card"><h3>How JMU Wins vs How JMU Loses</h3><div class="grid g2" style="margin-bottom:0">`;
+  const wins=f.filter(d=>d.out==="Win"),losses=f.filter(d=>d.out==="Loss");
+  const lwW=wins.filter(d=>d.who.includes("Left")).length,dtW=wins.filter(d=>d.who==="Draw Taker").length,rwW=wins.filter(d=>d.who.includes("Right")).length,gbW=wins.filter(d=>d.who==="Ground Ball").length,scW=wins.filter(d=>d.who==="Scramble").length;
+  html+=`<div><h4 style="font-size:12px;margin-bottom:6px;color:var(--pri)">When JMU Wins (${wins.length} clips)</h4><div style="font-size:11px;color:var(--muted);line-height:1.7">`;
+  if(lwW) html+=`<div>Left wing secures: <strong>${lwW} (${Math.round(lwW/wins.length*100)}%)</strong></div>`;
+  if(dtW) html+=`<div>Draw taker self-wins: <strong>${dtW}</strong></div>`;
+  if(rwW) html+=`<div>Right wing secures: <strong>${rwW}</strong></div>`;
+  if(gbW) html+=`<div>Ground ball recovery: <strong>${gbW}</strong></div>`;
+  if(scW) html+=`<div>Scramble: <strong>${scW}</strong></div>`;
+  html+=`</div></div>`;
+  html+=`<div><h4 style="font-size:12px;margin-bottom:6px;color:var(--loss)">When JMU Loses (${losses.length} clips)</h4><div style="font-size:11px;color:var(--muted);line-height:1.7">`;
+  const counterL=losses.filter(d=>d.tech.includes("COUNTER")).length;
+  const powerL=losses.filter(d=>d.dist==="Long").length;
+  if(counterL) html+=`<div>Countered/checked at X: <strong>${counterL}</strong></div>`;
+  if(powerL) html+=`<div>Over-powered / ball too far: <strong>${powerL}</strong></div>`;
+  html+=`<div style="margin-top:6px;padding:6px;background:rgba(239,68,68,.08);border-radius:6px;font-size:10px"><strong>Pattern:</strong> JMU loses when physically disrupted or ball travels too far.</div>`;
+  html+=`</div></div></div></div>`;
+  el.innerHTML=html;
+
+  // Wing contribution chart
+  destroyChart('cw-contrib');
+  const wm={"#24 (Left)":0,"#11 (Left)":0,"Other Left Wing":0,"Right Wing":0,"Draw Taker":0,"Ground Ball":0,"Scramble":0};
+  f.filter(d=>d.out==="Win").forEach(d=>{if(d.wing==="#24")wm["#24 (Left)"]++;else if(d.wing==="#11")wm["#11 (Left)"]++;else if(d.who.includes("Left"))wm["Other Left Wing"]++;else if(d.who.includes("Right"))wm["Right Wing"]++;else if(d.who==="Draw Taker")wm["Draw Taker"]++;else if(d.who==="Ground Ball")wm["Ground Ball"]++;else wm["Scramble"]++;});
+  const we=Object.entries(wm).filter(e=>e[1]>0).sort((a,b)=>b[1]-a[1]);
+  const wcol=n=>n.includes("Left")||n.includes("#24")||n.includes("#11")?"#3b82f6":n.includes("Right")?"#f97316":n.includes("Draw")?"#a78bfa":"#64748b";
+  charts['cw-contrib']=new Chart(document.getElementById('cw-contrib'),{type:'bar',data:{labels:we.map(e=>e[0]),datasets:[{label:'Wins',data:we.map(e=>e[1]),backgroundColor:we.map(e=>wcol(e[0])),borderRadius:6}]},options:{...cOpts({scales:{x:{ticks:{color:'#94a3b8',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#94a3b8'},grid:{color:'#334155'}}}}),indexAxis:'y',plugins:{legend:{display:false}}}});
+
+  // Wing timing
+  destroyChart('cw-timing');
+  const wt=f.filter(d=>d.out==="Win"&&d.ttp>0).sort((a,b)=>a.ttp-b.ttp);
+  charts['cw-timing']=new Chart(document.getElementById('cw-timing'),{type:'bar',data:{labels:wt.map(d=>`#${d.id}`),datasets:[{label:'Seconds',data:wt.map(d=>d.ttp),backgroundColor:wt.map(d=>d.ttp<=2.5?'#22c55e':d.ttp<=4?'#f59e0b':'#ef4444'),borderRadius:4}]},options:{...cOpts({scales:{x:{ticks:{color:'#94a3b8',font:{size:8}},grid:{display:false}},y:{ticks:{color:'#94a3b8'},grid:{color:'#334155'}}}}),plugins:{legend:{display:false}}}});
+
+  // Wing field SVG
+  const ws=document.getElementById('fld-wings');
+  let wsvg=`<rect width="500" height="400" fill="#1a3d1a" rx="8"/><circle cx="250" cy="200" r="80" fill="none" stroke="#fff" stroke-width="1.5" opacity=".3"/><circle cx="250" cy="200" r="3" fill="#fff"/>`;
+  wsvg+=`<rect x="30" y="80" width="150" height="170" rx="8" fill="rgba(59,130,246,.12)" stroke="#3b82f6" stroke-width="1.5"/><text x="105" y="100" fill="#3b82f6" font-size="11" font-weight="700" text-anchor="middle">LEFT WING ZONE</text><text x="105" y="116" fill="#94a3b8" font-size="9" text-anchor="middle">${lwW} wins (${wins.length>0?Math.round(lwW/wins.length*100):0}%)</text>`;
+  wsvg+=`<circle cx="90" cy="155" r="16" fill="rgba(59,130,246,.25)" stroke="#3b82f6" stroke-width="2"/><text x="90" y="159" fill="#3b82f6" font-size="10" font-weight="700" text-anchor="middle">#24</text>`;
+  wsvg+=`<circle cx="130" cy="200" r="13" fill="rgba(59,130,246,.18)" stroke="#3b82f6" stroke-width="1.5"/><text x="130" y="204" fill="#3b82f6" font-size="9" font-weight="700" text-anchor="middle">#11</text>`;
+  wsvg+=`<rect x="330" y="80" width="140" height="170" rx="8" fill="rgba(249,115,22,.06)" stroke="#f97316" stroke-width="1" stroke-dasharray="4"/><text x="400" y="100" fill="#f97316" font-size="11" font-weight="700" text-anchor="middle">RIGHT WING</text><text x="400" y="116" fill="#94a3b8" font-size="9" text-anchor="middle">${rwW} wins (WEAK)</text>`;
+  wsvg+=`<line x1="248" y1="195" x2="95" y2="155" stroke="#3b82f6" stroke-width="3" opacity=".4"/><line x1="248" y1="195" x2="130" y2="195" stroke="#3b82f6" stroke-width="2" opacity=".25"/>`;
+  wsvg+=`<text x="250" y="380" fill="#94a3b8" font-size="9" text-anchor="middle">JMU wing support is HEAVILY left-biased. Right side is undermanned.</text>`;
+  ws.innerHTML=wsvg;
+}
+
+// ============================================================
+// ALL CLIPS TABLE — clickable rows
+// ============================================================
+function renderClipsTable(f){
+  const el=document.getElementById('tab-clips');
+  let html=`<h2 style="font-size:16px;font-weight:700;margin-bottom:12px">All Clips (${f.length}) — Click any row for deep analysis</h2><div style="overflow-x:auto"><table><thead><tr>`;
+  ["#","Player","Technique","Direction","Clk","Dist","Ht","Outcome","Poss","Who","Wing","Spd","TTP","Venue"].forEach(h=>{html+=`<th>${h}</th>`;});
+  html+=`</tr></thead><tbody>`;
+  f.forEach(d=>{
+    const oc=d.out==="Win"?"pw":d.out==="Loss"?"pl":"pf";
+    const pc=d.p==="#29"?"p29c":d.p==="#17"?"p17c":"p18c";
+    const sel=curClip==String(d.id)?" selected-row":"";
+    html+=`<tr class="clickable${sel}" onclick="curClip='${d.id}';document.getElementById('clipSelect').value='${d.id}';switchTab('clipview',document.querySelector('[data-tab=clipview]'));renderAll();">`;
+    html+=`<td><strong>${d.id}</strong></td><td><span class="pill ${pc}">${d.p}</span></td><td>${d.tech}</td><td>${d.dir}</td><td>${d.clk}</td><td>${d.dist}</td><td>${d.ht}</td><td><span class="pill ${oc}">${d.out}</span></td><td>${d.poss}</td><td>${d.who}</td><td>${d.wing}</td><td>${d.spd}</td><td>${d.ttp||'-'}</td><td>${d.ven}</td>`;
+    html+=`</tr><tr><td colspan="14" style="padding:3px 8px 10px;font-size:10px;color:var(--dim)">${d.note.substring(0,120)}${d.note.length>120?'...':''}</td></tr>`;
+  });
+  html+=`</tbody></table></div>`;
+  el.innerHTML=html;
+}
+
+// ============================================================
+// TECHNIQUE TAB
+// ============================================================
+function renderTechnique(f){
+  const el=document.getElementById('tab-technique');
+  const tm={};f.forEach(d=>{const t=d.tech.replace(/ \(COUNTERED\)/,'');tm[t]=tm[t]||{w:0,l:0,t:0};tm[t].t++;if(d.out==="Win")tm[t].w++;else if(d.out==="Loss")tm[t].l++;});
+  const ta=Object.entries(tm).sort((a,b)=>b[1].t-a[1].t);
+
+  let html=`<div class="grid g2"><div class="card"><h3>Technique Win/Loss</h3><div class="chart-wrap" style="height:300px"><canvas id="ct-tech"></canvas></div></div>`;
+  html+=`<div class="card"><h3>Effectiveness Matrix</h3><table><thead><tr><th>Technique</th><th>Used</th><th>W</th><th>L</th><th>Win%</th><th>Rating</th></tr></thead><tbody>`;
+  ta.forEach(([n,s])=>{
+    const pct=s.t>0?Math.round(s.w/s.t*100):0;
+    const r=pct>=80?"Elite":pct>=60?"Good":pct>=40?"Avg":"Weak";
+    const rc=r==="Elite"?"var(--win)":r==="Good"?"var(--acc)":r==="Avg"?"var(--fifty)":"var(--loss)";
+    html+=`<tr><td style="font-weight:600">${n}</td><td>${s.t}</td><td style="color:var(--win)">${s.w}</td><td style="color:var(--loss)">${s.l}</td><td style="font-weight:700">${pct}%</td><td><span class="pill" style="background:${rc}22;color:${rc}">${r}</span></td></tr>`;
+  });
+  html+=`</tbody></table></div></div>`;
+
+  // Flow + TTP
+  const flowMap={};f.forEach(d=>{const t=d.tech.replace(/ \(COUNTERED\)/,'').split(' ').slice(0,2).join(' ');const dir=d.clk>=8&&d.clk<=10?"Left":d.clk>=11||d.clk<=1?"Forward":d.clk>=2&&d.clk<=4?"Right":"Backward";flowMap[`${t}|${dir}|${d.out}`]=(flowMap[`${t}|${dir}|${d.out}`]||0)+1;});
+  html+=`<div class="grid g2"><div class="card"><h3>Flow: Technique → Direction → Outcome</h3>`;
+  Object.entries(flowMap).sort((a,b)=>b[1]-a[1]).slice(0,12).forEach(([k,v])=>{
+    const [t,dir,out]=k.split('|');const iw=out==="Win";
+    html+=`<div class="flow-row"><span class="flow-tag" style="background:rgba(167,139,250,.15)">${t}</span><span style="color:var(--dim)">→</span><span class="flow-tag" style="background:rgba(6,182,212,.15)">${dir}</span><span style="color:var(--dim)">→</span><span class="flow-tag" style="background:${iw?'rgba(34,197,94,.15)':'rgba(239,68,68,.15)'};color:${iw?'var(--win)':'var(--loss)'}">${out}</span><strong style="margin-left:auto">${v}x</strong></div>`;
+  });
+  html+=`</div><div class="card"><h3>Time to Possession</h3><div class="chart-wrap" style="height:260px"><canvas id="ct-ttp"></canvas></div></div></div>`;
+  el.innerHTML=html;
+
+  destroyChart('ct-tech');
+  charts['ct-tech']=new Chart(document.getElementById('ct-tech'),{type:'bar',data:{labels:ta.map(e=>e[0]),datasets:[{label:'Wins',data:ta.map(e=>e[1].w),backgroundColor:'#22c55e'},{label:'Losses',data:ta.map(e=>e[1].l),backgroundColor:'#ef4444'}]},options:{...cOpts({scales:{x:{stacked:true,ticks:{color:'#94a3b8',font:{size:8},maxRotation:40},grid:{display:false}},y:{stacked:true,ticks:{color:'#94a3b8'},grid:{color:'#334155'}}}})}});
+
+  destroyChart('ct-ttp');
+  const ttpD=f.filter(d=>d.ttp>0).sort((a,b)=>a.id-b.id);
+  charts['ct-ttp']=new Chart(document.getElementById('ct-ttp'),{type:'bar',data:{labels:ttpD.map(d=>`#${d.id}`),datasets:[{label:'Seconds',data:ttpD.map(d=>d.ttp),backgroundColor:ttpD.map(d=>d.ttp<=2.5?'#22c55e':d.ttp<=4?'#f59e0b':'#ef4444'),borderRadius:4}]},options:{...cOpts({scales:{x:{ticks:{color:'#94a3b8',font:{size:8}},grid:{display:false}},y:{ticks:{color:'#94a3b8'},grid:{color:'#334155'}}}}),plugins:{legend:{display:false}}}});
+}
+
+// ============================================================
+// PLAYER PROFILES TAB
+// ============================================================
+function renderPlayers(){
+  const el=document.getElementById('tab-players');
+  const profiles=[
+    {id:"#29",col:"#a78bfa",role:"PRIMARY — 26 Draws",sum:"Dominant draw taker. Forward-Left clamp is bread-and-butter (65%+ left bias). Uses #24 (boxing) and #11 (directed) as primary wing targets. Open Up is secondary technique. 80.8% win rate but 0% when physically countered. Over-reliance on left channel is the #1 exploitable pattern."},
+    {id:"#17",col:"#22d3ee",role:"SECONDARY — 3 Draws",sum:"More versatile than #29 — behind rake, slice, AND forward techniques. 100% win rate (small sample). Brings different look that disrupts opponents prepared only for #29. Physical in the circle. If JMU subs #17, switch from left-counter to neutral/reactive."},
+    {id:"#18",col:"#fbbf24",role:"TERTIARY — 3 Draws",sum:"Weakest draw taker. Forward launch over-powers consistently — ball goes too far for wing recovery. 33% win rate. Exploitable matchup. Rest your draw specialist when #18 takes."},
+  ];
+  let html='';
+  profiles.forEach(pr=>{
+    const clips=ALL.filter(d=>d.p===pr.id);
+    const w=clips.filter(c=>c.out==="Win").length,l=clips.filter(c=>c.out==="Loss").length;
+    const pct=clips.length>0?Math.round(w/clips.length*100):0;
+    html+=`<div class="card" style="margin-bottom:16px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap"><div style="width:44px;height:44px;border-radius:50%;background:${pr.col}22;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:${pr.col};border:2px solid ${pr.col}">${pr.id}</div><div><div style="font-weight:700;font-size:15px">JMU ${pr.id}</div><div style="font-size:10px;color:${pr.col};font-weight:600">${pr.role}</div></div><div style="margin-left:auto;display:flex;gap:14px;text-align:center"><div><div style="font-size:20px;font-weight:800">${clips.length}</div><div style="font-size:9px;color:var(--muted)">Draws</div></div><div><div style="font-size:20px;font-weight:800;color:${pct>=60?'var(--win)':'var(--loss)'}">${pct}%</div><div style="font-size:9px;color:var(--muted)">Win%</div></div></div></div>`;
+    html+=`<p style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px">${pr.sum}</p>`;
+    html+=`<div style="overflow-x:auto"><table><thead><tr><th>Clip</th><th>Technique</th><th>Direction</th><th>Outcome</th><th>Poss</th><th>TTP</th><th>Notes</th></tr></thead><tbody>`;
+    clips.forEach(c=>{
+      const oc=c.out==="Win"?"pw":c.out==="Loss"?"pl":"pf";
+      html+=`<tr class="clickable" onclick="curClip='${c.id}';document.getElementById('clipSelect').value='${c.id}';switchTab('clipview',document.querySelector('[data-tab=clipview]'));renderAll();"><td>${c.id}</td><td>${c.tech}</td><td>${c.dir} (${c.clk})</td><td><span class="pill ${oc}">${c.out}</span></td><td>${c.poss}</td><td>${c.ttp||'-'}</td><td style="max-width:280px;font-size:10px;color:var(--dim)">${c.note.substring(0,100)}...</td></tr>`;
+    });
+    html+=`</tbody></table></div></div>`;
+  });
+  el.innerHTML=html;
+}
+
+// ============================================================
+// STRATEGY TAB
+// ============================================================
+function renderStrategy(){
+  const el=document.getElementById('tab-strategy');
+  const W=[
+    {s:"Critical",l:"Left-Side Predictability (~65% of draws)",d:"#29 sends ball Forward-Left on the majority of draws. Consistent across 6+ games. Does NOT change under pressure (clip 2 — last minute). Exploitable."},
+    {s:"Critical",l:"Vulnerable to Stick Checking (0% win rate countered)",d:"Clips 19-20 at Hopkins: physical stick check disrupted #29's clamp completely. JMU lost BOTH. #29 has NO adjustment. This is the #1 counter."},
+    {s:"High",l:"#18 is a Liability (33% Win Rate)",d:"Forward launch over-powers consistently. Only 1 win in 3 draws. If JMU subs #18, you have a matchup advantage."},
+    {s:"High",l:"Air Balls Neutralize Structure",d:"When draw becomes pop-up (clip 18), all pre-planned wing positioning is negated. Result: 50-50 chaos. Force air balls."},
+    {s:"Medium",l:"Backward Direction Underdeveloped",d:"Only 4 clips backward. Slower TTP (3.4-4.8s). Less polished backup technique."},
+    {s:"Medium",l:"Right Side Desert (9% usage)",d:"3 of 32 draws go right. JMU's right-wing support is minimal. Push YOUR draws right."},
+    {s:"Medium",l:"Slow Ground Ball Recovery (5s+)",d:"Ground ball scrambles = slow possession. JMU's advantage is clean/wing wins, not 50-50 battles."},
+  ];
+  const S=[
+    {p:"Priority 1",l:"Overload Your Right Wing (Their Left Channel)",d:"Position your strongest wing defender at JMU's 9-10 o'clock. Sprint to the landing zone BEFORE the whistle. Beat #24 to the spot."},
+    {p:"Priority 1",l:"Physical Stick Check at the X",d:"Check #29's stick during draw motion (see clips 19-20). 100% success rate in film. Requires practice. #1 counter-tactic."},
+    {p:"Priority 2",l:"Matchup: Best vs #29, Mismatch vs #18",d:"Deploy top specialist with check plan vs #29. Rest her when #18 subs in — #18 beats herself."},
+    {p:"Priority 2",l:"Force Air Balls / Pop-Ups",d:"Go-with pop technique reduces JMU's clean win rate from ~85% to ~50%. Even partial disruption helps."},
+    {p:"Priority 2",l:"Sprint Wings Early — Beat #24",d:"Your wings sprint into landing zone at whistle. Don't wait for ball to arrive. Beat #24 to position."},
+    {p:"Priority 3",l:"Push Right on Your Draws",d:"JMU's right-wing support is concentrated left. Their right is undermanned. Exploit the asymmetry."},
+    {p:"Priority 3",l:"Late Game: Trust the Counter",d:"JMU's pattern doesn't change under pressure (clip 2). Predictability INCREASES. Trust your counter."},
+    {p:"Priority 3",l:"#17 Adjustment: Switch to Neutral",d:"If #17 subs, DON'T pre-commit left. #17's behind rake punishes aggressive left positioning. Play neutral/reactive."},
+  ];
+  const sCol=s=>s==="Critical"||s==="Priority 1"?"var(--loss)":s==="High"||s==="Priority 2"?"var(--fifty)":"var(--acc)";
+
+  let html=`<div class="card" style="margin-bottom:20px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px"><div style="width:32px;height:32px;border-radius:50%;background:rgba(239,68,68,.15);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:var(--loss);border:2px solid var(--loss)">!</div><h2 style="font-size:15px;font-weight:800">JMU WEAKNESSES</h2></div>`;
+  W.forEach(w=>{html+=`<div class="strat-item ${w.s==='Critical'?'':'p'+(w.s==='High'?'2':'3')}"><h4>${w.l}<span class="pill" style="background:${sCol(w.s)}22;color:${sCol(w.s)}">${w.s}</span></h4><p>${w.d}</p></div>`;});
+  html+=`</div>`;
+
+  html+=`<div class="card" style="margin-bottom:20px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px"><div style="width:32px;height:32px;border-radius:50%;background:rgba(34,197,94,.15);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:var(--win);border:2px solid var(--win)">★</div><h2 style="font-size:15px;font-weight:800">COUNTER-STRATEGY GAME PLAN</h2></div>`;
+  S.forEach(s=>{html+=`<div class="strat-item ${s.p.includes('1')?'':s.p.includes('2')?'p2':'p3'}"><h4>${s.l}<span class="pill" style="background:${sCol(s.p)}22;color:${sCol(s.p)}">${s.p}</span></h4><p>${s.d}</p></div>`;});
+  html+=`</div>`;
+
+  html+=`<div class="card"><h2 style="font-size:15px;font-weight:800;color:var(--acc);margin-bottom:14px">GAME DAY CHEAT SHEET</h2><div class="grid g3">`;
+  [{t:"vs JMU #29 (Primary)",c:"#a78bfa",lines:["Expect: Fwd-Left clamp (65%)","Counter: Physical stick check","Your wing: Overload RIGHT","Watch: #24 boxing, #11 outlet","Under pressure: NO CHANGE","Win rate to beat: 80.8%"]},
+   {t:"vs JMU #17 (Secondary)",c:"#22d3ee",lines:["Expect: Varied (behind, slice, F+DL)","Counter: Stay NEUTRAL/reactive","DON'T pre-commit left","Watch: Behind rake at 6 o'clock","Win rate to beat: 100% (3 clips)"]},
+   {t:"vs JMU #18 (Exploit)",c:"#fbbf24",lines:["Expect: Forward launch (over-powered)","Counter: Let her over-hit","Position wings DEEP","EXPLOIT: 33% win rate","Rest your draw specialist"]}
+  ].forEach(ch=>{html+=`<div class="cheat"><h4 style="color:${ch.c}">${ch.t}</h4><div>${ch.lines.map(l=>`<div>${l}</div>`).join('')}</div></div>`;});
+  html+=`</div></div>`;
+  el.innerHTML=html;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+populateClipSelect();
+renderAll();
+</script>
+</body>
+</html>

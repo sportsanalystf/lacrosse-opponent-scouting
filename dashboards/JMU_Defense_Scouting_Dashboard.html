@@ -1,0 +1,1748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JMU Defense Scouting Dashboard - UVA Lacrosse</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            border-bottom: 2px solid #475569;
+            padding: 30px 0 20px 0;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            color: #cbd5e1;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #3b82f6;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #cbd5e1;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .filter-bar {
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .filter-section {
+            margin-bottom: 15px;
+        }
+
+        .filter-label {
+            font-size: 0.9em;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .filter-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .pill {
+            padding: 8px 16px;
+            background: #0f172a;
+            border: 1px solid #475569;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #cbd5e1;
+            font-size: 0.9em;
+        }
+
+        .pill:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        .pill.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: #fff;
+        }
+
+        select {
+            background: #0f172a;
+            border: 1px solid #475569;
+            color: #f8fafc;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 1em;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-bottom: 2px solid #475569;
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 1em;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            color: #f8fafc;
+        }
+
+        .tab-btn.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            margin-bottom: 15px;
+            color: #3b82f6;
+            font-size: 1.3em;
+        }
+
+        .card h4 {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #cbd5e1;
+            font-size: 1.05em;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 30px;
+        }
+
+        .vulnerability-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .vuln-card {
+            background: #0f172a;
+            border-left: 4px solid;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        .vuln-card.critical {
+            border-color: #ef4444;
+        }
+
+        .vuln-card.high {
+            border-color: #f97316;
+        }
+
+        .vuln-card.medium {
+            border-color: #eab308;
+        }
+
+        .vuln-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 1.05em;
+        }
+
+        .vuln-card.critical .vuln-title {
+            color: #ef4444;
+        }
+
+        .vuln-card.high .vuln-title {
+            color: #f97316;
+        }
+
+        .vuln-card.medium .vuln-title {
+            color: #eab308;
+        }
+
+        .vuln-desc {
+            font-size: 0.95em;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+
+        .clip-detail-card {
+            background: #0f172a;
+            border: 1px solid #475569;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .clip-detail-row {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            margin-bottom: 12px;
+        }
+
+        .clip-detail-label {
+            font-weight: bold;
+            color: #3b82f6;
+        }
+
+        .clip-detail-value {
+            color: #cbd5e1;
+        }
+
+        .svg-diagram {
+            width: 100%;
+            max-width: 700px;
+            margin: 20px auto;
+            background: #0f172a;
+            border: 1px solid #475569;
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #475569;
+        }
+
+        th {
+            background: #0f172a;
+            color: #3b82f6;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        th:hover {
+            background: #1e293b;
+        }
+
+        tr:hover {
+            background: #0f172a;
+        }
+
+        td.goal-allowed {
+            color: #ef4444;
+            font-weight: 500;
+        }
+
+        td.goal-stopped {
+            color: #10b981;
+            font-weight: 500;
+        }
+
+        .clip-link {
+            color: #3b82f6;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .clip-link:hover {
+            color: #60a5fa;
+        }
+
+        .priority-list {
+            list-style: none;
+            margin-top: 20px;
+        }
+
+        .priority-list li {
+            background: #0f172a;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 4px;
+        }
+
+        .priority-list li.p1 {
+            border-left-color: #ef4444;
+        }
+
+        .priority-list li.p2 {
+            border-left-color: #f97316;
+        }
+
+        .priority-list li.p3 {
+            border-left-color: #eab308;
+        }
+
+        .priority-number {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: #3b82f6;
+            color: white;
+            text-align: center;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-weight: bold;
+            font-size: 0.85em;
+        }
+
+        .priority-list li.p1 .priority-number {
+            background: #ef4444;
+        }
+
+        .priority-list li.p2 .priority-number {
+            background: #f97316;
+        }
+
+        .priority-list li.p3 .priority-number {
+            background: #eab308;
+        }
+
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .strategy-box {
+            background: #0f172a;
+            border: 1px solid #475569;
+            padding: 20px;
+            border-radius: 6px;
+        }
+
+        .strategy-box h4 {
+            color: #3b82f6;
+            margin-bottom: 12px;
+        }
+
+        .breakdown-type {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #1e293b;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: #cbd5e1;
+            margin: 2px;
+        }
+
+        .result-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .result-badge.goal {
+            background: #7f1d1d;
+            color: #fecaca;
+        }
+
+        .result-badge.stop {
+            background: #064e3b;
+            color: #a7f3d0;
+        }
+
+        .result-badge.turnover {
+            background: #4c1d95;
+            color: #e9d5ff;
+        }
+
+        .highlight-box {
+            background: #1e293b;
+            border-left: 4px solid #8b5cf6;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            color: #e9d5ff;
+            line-height: 1.6;
+        }
+
+        .cheat-sheet {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .cheat-item {
+            background: #0f172a;
+            border: 2px solid #475569;
+            padding: 18px;
+            border-radius: 8px;
+        }
+
+        .cheat-item strong {
+            color: #3b82f6;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .cheat-item p {
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .tabs {
+                gap: 5px;
+            }
+
+            .tab-btn {
+                padding: 10px 15px;
+                font-size: 0.9em;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+
+            .filter-pills {
+                gap: 8px;
+            }
+
+            .pill {
+                padding: 6px 12px;
+                font-size: 0.85em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>JMU Defense Scouting Dashboard</h1>
+            <p class="subtitle">UVA Lacrosse • Attack Analysis • How to Exploit JMU's Defensive Weaknesses</p>
+        </header>
+
+        <!-- Stats Row -->
+        <div class="stats-row" id="statsRow"></div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="filter-section">
+                <span class="filter-label">Category Filter</span>
+                <div class="filter-pills" id="categoryFilters"></div>
+            </div>
+            <div class="filter-section">
+                <label class="filter-label">Select Clip</label>
+                <select id="clipSelect" onchange="jumpToClip()">
+                    <option value="">Choose a clip...</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('summary', this)">Summary</button>
+            <button class="tab-btn" onclick="switchTab('clipDetail', this)">Clip Detail</button>
+            <button class="tab-btn" onclick="switchTab('scheme', this)">Defensive Scheme</button>
+            <button class="tab-btn" onclick="switchTab('breakdown', this)">Breakdown Analysis</button>
+            <button class="tab-btn" onclick="switchTab('zoneGaps', this)">Zone Gap Exploitation</button>
+            <button class="tab-btn" onclick="switchTab('transition', this)">Transition & Man-Up</button>
+            <button class="tab-btn" onclick="switchTab('allClips', this)">All Clips Table</button>
+            <button class="tab-btn" onclick="switchTab('gameplan', this)">Game Plan</button>
+        </div>
+
+        <!-- Tab Content -->
+
+        <!-- SUMMARY TAB -->
+        <div id="summary" class="tab-content active">
+            <div class="card">
+                <h3>Scouting Summary: JMU Defense Overview</h3>
+                <p>Analysis of 14 key defensive possessions showing JMU's weaknesses and exploitation opportunities for UVA's offense.</p>
+            </div>
+
+            <div class="card">
+                <h3>Defensive Breakdown Category Distribution</h3>
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Goals Allowed by Defensive Situation</h3>
+                <div class="chart-container">
+                    <canvas id="goalsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Defensive Vulnerabilities</h3>
+                <div class="vulnerability-cards">
+                    <div class="vuln-card critical">
+                        <div class="vuln-title">CRITICAL: Motion-to-Action Breakdown</div>
+                        <div class="vuln-desc">JMU's defense fails when motion transitions to driving or cutting actions. 3 goals allowed on motion→drive/cut plays. Slides are late; cutters beat defenders.</div>
+                    </div>
+                    <div class="vuln-card critical">
+                        <div class="vuln-title">CRITICAL: Transition Defense</div>
+                        <div class="vuln-desc">2 transition goals allowed. JMU does not set fast enough or maintains poor positioning in unset situations. Attack in transition immediately.</div>
+                    </div>
+                    <div class="vuln-card high">
+                        <div class="vuln-title">HIGH: Zone Gap Exploitation</div>
+                        <div class="vuln-desc">Clear driving lanes exist in JMU's zone defense. 2 dedicated clips show driving through gaps. Attackers beat zone with hard drives.</div>
+                    </div>
+                    <div class="vuln-card high">
+                        <div class="vuln-title">HIGH: B-Side Help Awareness</div>
+                        <div class="vuln-desc">Backside/weakside awareness is poor. Throwback passes find open attackers. Help-side defense rotates late or overcommits on ball side.</div>
+                    </div>
+                    <div class="vuln-card high">
+                        <div class="vuln-title">HIGH: Man-Up Rotation Issues</div>
+                        <div class="vuln-desc">3 man-up clips analyzed. JMU struggles with spacing and rotation when defending 4v5. Gaps exist in their formation, especially 2-in-middle variant.</div>
+                    </div>
+                    <div class="vuln-card medium">
+                        <div class="vuln-title">MEDIUM: Pure Motion Coverage</div>
+                        <div class="vuln-desc">JMU handles pure motion offense reasonably well (3 clips, no goals). Threat level lower when motion does NOT transition to action. Use as misdirection.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Key Statistics</h3>
+                <table>
+                    <tr>
+                        <td><strong>Total Clips Analyzed</strong></td>
+                        <td>14</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Goals Allowed</strong></td>
+                        <td>6 (42.9%)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Defensive Schemes Seen</strong></td>
+                        <td>8 (57.1%)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Most Dangerous Situation</strong></td>
+                        <td>Motion transitioning to action (3 goals)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Transition Goals</strong></td>
+                        <td>2 (unset situations)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Man-Up Analysis Clips</strong></td>
+                        <td>3 (with 2-in-middle variant)</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- CLIP DETAIL TAB -->
+        <div id="clipDetail" class="tab-content">
+            <div class="card">
+                <h3>Detailed Clip Analysis</h3>
+                <label class="filter-label">Select Clip for Details</label>
+                <select id="clipDetailSelect" onchange="updateClipDetail()">
+                    <option value="">Choose a clip...</option>
+                </select>
+                <div id="clipDetailContent"></div>
+            </div>
+        </div>
+
+        <!-- DEFENSIVE SCHEME TAB -->
+        <div id="scheme" class="tab-content">
+            <div class="card">
+                <h3>JMU Defensive Scheme Analysis</h3>
+                <p>JMU employs a zone-based defense with slide packages and help rotations. Analysis based on defensive clips (1, 3, 5, 7, 8, 12, 13, 14).</p>
+
+                <h4>Defensive Formation Overview</h4>
+                <svg class="svg-diagram" viewBox="0 0 600 400">
+                    <!-- Lacrosse field -->
+                    <rect x="20" y="20" width="560" height="360" fill="none" stroke="#475569" stroke-width="2"/>
+                    <!-- Center line -->
+                    <line x1="300" y1="20" x2="300" y2="380" stroke="#475569" stroke-width="1" stroke-dasharray="5,5"/>
+                    <!-- Crease circle -->
+                    <circle cx="85" cy="200" r="35" fill="none" stroke="#475569" stroke-width="1" stroke-dasharray="3,3"/>
+                    <!-- Box -->
+                    <rect x="20" y="160" width="65" height="80" fill="none" stroke="#475569" stroke-width="1" stroke-dasharray="3,3"/>
+
+                    <!-- Title -->
+                    <text x="300" y="35" text-anchor="middle" font-size="14" fill="#3b82f6" font-weight="bold">JMU Zone Defense (Typical 2-3 Zone)</text>
+
+                    <!-- Defensive players -->
+                    <!-- Defense goal line -->
+                    <circle cx="85" cy="200" r="10" fill="#ef4444"/>
+                    <text x="85" y="205" text-anchor="middle" font-size="10" fill="white" font-weight="bold">G</text>
+
+                    <!-- Close attack -->
+                    <circle cx="130" cy="140" r="8" fill="#f97316"/>
+                    <text x="130" y="143" text-anchor="middle" font-size="9" fill="white" font-weight="bold">D1</text>
+
+                    <circle cx="130" cy="260" r="8" fill="#f97316"/>
+                    <text x="130" y="263" text-anchor="middle" font-size="9" fill="white" font-weight="bold">D2</text>
+
+                    <!-- Short stick defense -->
+                    <circle cx="200" cy="200" r="8" fill="#fbbf24"/>
+                    <text x="200" y="203" text-anchor="middle" font-size="9" fill="white" font-weight="bold">M</text>
+
+                    <!-- Help side -->
+                    <circle cx="280" cy="130" r="8" fill="#3b82f6"/>
+                    <text x="280" y="133" text-anchor="middle" font-size="9" fill="white" font-weight="bold">H1</text>
+
+                    <circle cx="280" cy="270" r="8" fill="#3b82f6"/>
+                    <text x="280" y="273" text-anchor="middle" font-size="9" fill="white" font-weight="bold">H2</text>
+
+                    <!-- Long stick defense (transition help) -->
+                    <circle cx="350" cy="200" r="8" fill="#8b5cf6"/>
+                    <text x="350" y="203" text-anchor="middle" font-size="9" fill="white" font-weight="bold">LSM</text>
+
+                    <!-- Defensive arrows showing slide directions -->
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                            <polygon points="0 0, 10 3, 0 6" fill="#94a3b8" opacity="0.6"/>
+                        </marker>
+                    </defs>
+
+                    <!-- Slide paths (dashed) -->
+                    <line x1="200" y1="200" x2="130" y2="140" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrowhead)" opacity="0.5"/>
+                    <line x1="200" y1="200" x2="130" y2="260" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrowhead)" opacity="0.5"/>
+
+                    <!-- Key positions labeled -->
+                    <text x="85" y="250" text-anchor="middle" font-size="10" fill="#94a3b8">GLE</text>
+                    <text x="130" y="100" text-anchor="middle" font-size="9" fill="#94a3b8">CREASE</text>
+                    <text x="200" y="330" text-anchor="middle" font-size="10" fill="#94a3b8">MIDFIELD HELP</text>
+                    <text x="350" y="330" text-anchor="middle" font-size="10" fill="#94a3b8">TRANSITION</text>
+
+                    <!-- Note about slides -->
+                    <text x="300" y="370" text-anchor="middle" font-size="10" fill="#cbd5e1" font-style="italic">Red = Goalkeeping, Orange = Close Attack, Yellow = Midfield, Blue = Help-side, Purple = LSM</text>
+                </svg>
+
+                <h4>Defensive Scheme Characteristics</h4>
+                <ul class="priority-list">
+                    <li style="border-left-color: #cbd5e1; margin-bottom: 10px;">
+                        <strong style="color: #cbd5e1;">Zone Type:</strong> 2-3 Zone (2 close attackmen, 3 help players)
+                    </li>
+                    <li style="border-left-color: #cbd5e1; margin-bottom: 10px;">
+                        <strong style="color: #cbd5e1;">Slide Package:</strong> Proactive slides from help-side when ball moves; midfield support on short stick
+                    </li>
+                    <li style="border-left-color: #cbd5e1; margin-bottom: 10px;">
+                        <strong style="color: #cbd5e1;">Recovery:</strong> Moderate recovery speed; vulnerabilities emerge when cutters attack before recovery complete
+                    </li>
+                    <li style="border-left-color: #cbd5e1; margin-bottom: 10px;">
+                        <strong style="color: #cbd5e1;">Help-Side Awareness:</strong> Gaps exist on backside; LSM not always helping on B-side throwbacks
+                    </li>
+                    <li style="border-left-color: #cbd5e1;">
+                        <strong style="color: #cbd5e1;">Transition Setup:</strong> Slower to set in transition; not enough depth early
+                    </li>
+                </ul>
+
+                <h4>Slide System Breakdown</h4>
+                <div class="strategy-grid">
+                    <div class="strategy-box">
+                        <h4>Crease Slide</h4>
+                        <p>When attacking near crease, JMU's close attackmen slide hard. Problem: other zones left open temporarily. Goal = quick kick-outs to open shooters.</p>
+                    </div>
+                    <div class="strategy-box">
+                        <h4>Help-Side Slide</h4>
+                        <p>Help defenders (blue in diagram) slide to ball. Issue: backside left undefended. Exploit with backside/throwback passes.</p>
+                    </div>
+                    <div class="strategy-box">
+                        <h4>Short Stick Support</h4>
+                        <p>Midfield short stick (yellow) provides central support. Struggles when motion is rapid; gap opens for interior cuts.</p>
+                    </div>
+                    <div class="strategy-box">
+                        <h4>Transition Help</h4>
+                        <p>LSM (purple) helps transition but positioning can be reactive. Attack immediately in transition before LSM is set.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BREAKDOWN ANALYSIS TAB -->
+        <div id="breakdown" class="tab-content">
+            <div class="card">
+                <h3>Defensive Breakdown Analysis</h3>
+                <p>Detailed analysis of where, when, and how JMU's defense fails based on 14 film clips.</p>
+
+                <div class="chart-container">
+                    <canvas id="breakdownChart"></canvas>
+                </div>
+
+                <h4>Breakdown Locations on Field</h4>
+                <svg class="svg-diagram" viewBox="0 0 600 400">
+                    <!-- Field -->
+                    <rect x="20" y="20" width="560" height="360" fill="none" stroke="#475569" stroke-width="2"/>
+                    <!-- Center line -->
+                    <line x1="300" y1="20" x2="300" y2="380" stroke="#475569" stroke-width="1" stroke-dasharray="5,5"/>
+                    <!-- Crease -->
+                    <circle cx="85" cy="200" r="35" fill="none" stroke="#475569" stroke-width="1" stroke-dasharray="3,3"/>
+                    <circle cx="85" cy="200" r="15" fill="none" stroke="#475569" stroke-width="1"/>
+                    <!-- Box -->
+                    <rect x="20" y="160" width="65" height="80" fill="none" stroke="#475569" stroke-width="1" stroke-dasharray="3,3"/>
+
+                    <text x="300" y="35" text-anchor="middle" font-size="14" fill="#3b82f6" font-weight="bold">Common Breakdown Locations</text>
+
+                    <!-- Zone gap locations (HIGH) -->
+                    <circle cx="150" cy="100" r="15" fill="none" stroke="#ef4444" stroke-width="3" opacity="0.6"/>
+                    <text x="150" y="105" text-anchor="middle" font-size="9" fill="#ef4444" font-weight="bold">ZONE</text>
+                    <text x="150" y="125" text-anchor="middle" font-size="8" fill="#ef4444">GAP</text>
+
+                    <circle cx="150" cy="300" r="15" fill="none" stroke="#ef4444" stroke-width="3" opacity="0.6"/>
+                    <text x="150" y="305" text-anchor="middle" font-size="9" fill="#ef4444" font-weight="bold">ZONE</text>
+                    <text x="150" y="325" text-anchor="middle" font-size="8" fill="#ef4444">GAP</text>
+
+                    <!-- Interior cut (HIGH) -->
+                    <circle cx="120" cy="200" r="12" fill="none" stroke="#f97316" stroke-width="2.5" opacity="0.7"/>
+                    <text x="120" y="205" text-anchor="middle" font-size="8" fill="#f97316" font-weight="bold">CUT</text>
+
+                    <!-- Crease/GLE breakdown -->
+                    <circle cx="85" cy="200" r="18" fill="none" stroke="#fbbf24" stroke-width="2.5" opacity="0.6"/>
+                    <text x="85" y="205" text-anchor="middle" font-size="8" fill="#fbbf24" font-weight="bold">CREASE</text>
+
+                    <!-- B-side/Weakside -->
+                    <circle cx="250" cy="100" r="15" fill="none" stroke="#3b82f6" stroke-width="2.5" opacity="0.6"/>
+                    <text x="250" y="105" text-anchor="middle" font-size="8" fill="#3b82f6" font-weight="bold">B-SIDE</text>
+                    <text x="250" y="120" text-anchor="middle" font-size="8" fill="#3b82f6">OPEN</text>
+
+                    <!-- Legend -->
+                    <text x="350" y="80" font-size="10" fill="#ef4444" font-weight="bold">● = Zone Gaps (CRITICAL)</text>
+                    <text x="350" y="100" font-size="10" fill="#f97316" font-weight="bold">● = Interior Cuts (HIGH)</text>
+                    <text x="350" y="120" font-size="10" fill="#fbbf24" font-weight="bold">● = Crease Breakdowns (MEDIUM)</text>
+                    <text x="350" y="140" font-size="10" fill="#3b82f6" font-weight="bold">● = B-Side Openness (HIGH)</text>
+                </svg>
+
+                <h4>Breakdown Types & Frequency</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Breakdown Type</th>
+                            <th>Frequency</th>
+                            <th>Goals Allowed</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Zone Gaps</strong></td>
+                            <td>2 clips</td>
+                            <td>0</td>
+                            <td>Hard driving through gaps in zone (exploitable but not goal-yielding in sample)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Late Slides</strong></td>
+                            <td>3 clips</td>
+                            <td>3 GOALS</td>
+                            <td>Cutters beat slides; motion-to-action fast enough to score</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Poor Recovery</strong></td>
+                            <td>1 clip</td>
+                            <td>1 GOAL</td>
+                            <td>Defenders not resetting; B-side throwback beats help</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Transition Weakness</strong></td>
+                            <td>2 clips</td>
+                            <td>2 GOALS</td>
+                            <td>Unset defense; immediate attacks before positioning</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4>Possession Timing of Breakdowns</h4>
+                <div class="highlight-box">
+                    <strong>Early Possession (0-5 sec):</strong> Most breakdowns occur when JMU is not yet fully set. Motion attacks are most effective in first 5 seconds of possession as defenders are still rotating into zone.
+                    <br/><br/>
+                    <strong>Mid Possession (6-15 sec):</strong> If JMU sets, zone becomes harder to beat. Most scoring happens in early phase.
+                    <br/><br/>
+                    <strong>Late Possession (16+ sec):</strong> Defense solidifies; fewer breakdowns. Shot selection becomes more difficult.
+                </div>
+            </div>
+        </div>
+
+        <!-- ZONE GAP EXPLOITATION TAB -->
+        <div id="zoneGaps" class="tab-content">
+            <div class="card">
+                <h3>Zone Gap Exploitation Strategy</h3>
+                <p>Detailed analysis of clips 7-8: driving through JMU's zone defensive gaps. These clips show clear lanes for hard ball-carriers to attack.</p>
+
+                <h4>Zone Gap Locations</h4>
+                <svg class="svg-diagram" viewBox="0 0 600 400">
+                    <!-- Field -->
+                    <rect x="20" y="20" width="560" height="360" fill="none" stroke="#475569" stroke-width="2"/>
+                    <!-- Center line -->
+                    <line x1="300" y1="20" x2="300" y2="380" stroke="#475569" stroke-width="1" stroke-dasharray="5,5"/>
+                    <!-- Crease -->
+                    <circle cx="85" cy="200" r="35" fill="none" stroke="#475569" stroke-width="1" stroke-dasharray="3,3"/>
+                    <!-- Box -->
+                    <rect x="20" y="160" width="65" height="80" fill="none" stroke="#475569" stroke-width="1" stroke-dasharray="3,3"/>
+
+                    <text x="300" y="35" text-anchor="middle" font-size="14" fill="#3b82f6" font-weight="bold">Driving Lanes Through JMU Zone</text>
+
+                    <!-- Defensive zone circles -->
+                    <circle cx="130" cy="140" r="12" fill="#f97316" opacity="0.3"/>
+                    <circle cx="130" cy="260" r="12" fill="#f97316" opacity="0.3"/>
+                    <circle cx="200" cy="200" r="12" fill="#fbbf24" opacity="0.3"/>
+
+                    <!-- GAP 1: Top of zone -->
+                    <line x1="150" y1="80" x2="150" y2="140" stroke="#ef4444" stroke-width="3" stroke-dasharray="4,2"/>
+                    <line x1="170" y1="80" x2="170" y2="140" stroke="#ef4444" stroke-width="3" stroke-dasharray="4,2"/>
+                    <text x="160" y="100" text-anchor="middle" font-size="9" fill="#ef4444" font-weight="bold">GAP 1</text>
+                    <text x="160" y="115" text-anchor="middle" font-size="8" fill="#ef4444">(Top)</text>
+
+                    <!-- GAP 2: Bottom of zone -->
+                    <line x1="150" y1="260" x2="150" y2="320" stroke="#ef4444" stroke-width="3" stroke-dasharray="4,2"/>
+                    <line x1="170" y1="260" x2="170" y2="320" stroke="#ef4444" stroke-width="3" stroke-dasharray="4,2"/>
+                    <text x="160" y="295" text-anchor="middle" font-size="9" fill="#ef4444" font-weight="bold">GAP 2</text>
+                    <text x="160" y="310" text-anchor="middle" font-size="8" fill="#ef4444">(Bottom)</text>
+
+                    <!-- GAP 3: Crease to goal line (vertical gap) -->
+                    <line x1="85" y1="165" x2="85" y2="235" stroke="#f97316" stroke-width="3" stroke-dasharray="4,2"/>
+                    <text x="50" y="200" text-anchor="middle" font-size="9" fill="#f97316" font-weight="bold">GAP 3</text>
+                    <text x="50" y="215" text-anchor="middle" font-size="8" fill="#f97316">(Crease)</text>
+
+                    <!-- Player #18 noted -->
+                    <circle cx="150" cy="150" r="8" fill="#3b82f6"/>
+                    <text x="150" y="155" text-anchor="middle" font-size="9" fill="white" font-weight="bold">18</text>
+                    <text x="150" y="170" text-anchor="middle" font-size="8" fill="#3b82f6">(Clip 7)</text>
+
+                    <!-- Legend -->
+                    <text x="350" y="80" font-size="10" fill="#ef4444" font-weight="bold">= Primary Gaps (High %)</text>
+                    <text x="350" y="100" font-size="10" fill="#f97316" font-weight="bold">= Secondary Gaps</text>
+                    <text x="350" y="120" font-size="10" fill="#94a3b8">Defend gaps with active hands/slides</text>
+                </svg>
+
+                <h4>Gap Exploitation Tactics (Clips 7-8 Breakdown)</h4>
+                <div class="strategy-grid">
+                    <div class="strategy-box">
+                        <h4>Gap 1: Top/Upper Zone</h4>
+                        <p><strong>Attack:</strong> Drive hard up the side, between top close attackman and midfield help. </p>
+                        <p><strong>Why it works:</strong> JMU's help defenders take away the crease; side gaps open. Player #18 exploited this in clip 7.</p>
+                        <p><strong>Finish:</strong> Score or kick to opposite pole.</p>
+                    </div>
+                    <div class="strategy-box">
+                        <h4>Gap 2: Bottom/Lower Zone</h4>
+                        <p><strong>Attack:</strong> Mirror of Gap 1. Drive low, between bottom close attackman and help. </p>
+                        <p><strong>Why it works:</strong> Same principle: help focuses on crease/ball, sides open.</p>
+                        <p><strong>Finish:</strong> Score or dish to cutting teammate.</p>
+                    </div>
+                    <div class="strategy-box">
+                        <h4>Gap 3: Crease Vertical</h4>
+                        <p><strong>Attack:</strong> Drive straight down the crease, knife attack. </p>
+                        <p><strong>Why it works:</strong> If attacking from wings, crease becomes open window. JMU's close attackmen cannot cover both sides simultaneously.</p>
+                        <p><strong>Finish:</strong> High-quality inside scoring opportunity.</p>
+                    </div>
+                    <div class="strategy-box">
+                        <h4>Combo: Gap Shift</h4>
+                        <p><strong>Attack:</strong> Fake one gap, attack another. Motion to misdirect, then hard drive through primary gap. </p>
+                        <p><strong>Why it works:</strong> JMU's zone will collapse toward misdirection; real attack finds opening.</p>
+                        <p><strong>Finish:</strong> Higher-quality shot or skip shot opportunity.</p>
+                    </div>
+                </div>
+
+                <div class="highlight-box">
+                    <strong>Player #18 Tendency (Clip 7):</strong> In clip 7, player #18 successfully drives through zone gaps with pace. This indicates #18 is a scoring threat on hard drives. UVA should mirror similar drive-heavy attacks. Keep #18 in view for game film review to understand his footwork and angle selection.
+                </div>
+
+                <h4>Success Metrics for Gap Exploitation</h4>
+                <table>
+                    <tr>
+                        <td><strong>Shot Quality</strong></td>
+                        <td>High-percentage looks; GLE, crease, or near-post opportunity</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Drive Speed</strong></td>
+                        <td>Attack with intent; slow drives allow help to recover. Hard pace beats slides.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Timing</strong></td>
+                        <td>First 5 seconds of possession before JMU fully set (see Breakdown Analysis tab)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Catch-and-Drive</strong></td>
+                        <td>Don't pause with ball at top. Catch and drive immediately through gap.</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- TRANSITION & MAN-UP TAB -->
+        <div id="transition" class="tab-content">
+            <div class="card">
+                <h3>Transition & Man-Up Defense Analysis</h3>
+                <p>JMU's vulnerability in unset situations and player-down defending. Clips 10-11 (transition goals), 12-14 (man-up schemes).</p>
+
+                <h4>Transition Defense (Clips 10-11: Both GOALS)</h4>
+                <div class="highlight-box">
+                    <strong>Critical Insight:</strong> JMU allowed 2 goals in transition situations. This is a major weakness. Recommendation: Attack in transition every possession opportunity. Do not wait for full offense to set.
+                </div>
+
+                <svg class="svg-diagram" viewBox="0 0 600 400">
+                    <!-- Field -->
+                    <rect x="20" y="20" width="560" height="360" fill="none" stroke="#475569" stroke-width="2"/>
+                    <circle cx="85" cy="200" r="35" fill="none" stroke="#475569" stroke-width="1" stroke-dasharray="3,3"/>
+                    <circle cx="85" cy="200" r="15" fill="none" stroke="#475569" stroke-width="1"/>
+                    <rect x="20" y="160" width="65" height="80" fill="none" stroke="#475569" stroke-width="1" stroke-dasharray="3,3"/>
+
+                    <text x="300" y="35" text-anchor="middle" font-size="14" fill="#3b82f6" font-weight="bold">Transition Attack Success Pattern</text>
+
+                    <!-- Numbered positions for transition -->
+                    <circle cx="300" cy="200" r="8" fill="#10b981"/>
+                    <text x="300" y="205" text-anchor="middle" font-size="9" fill="white" font-weight="bold">1</text>
+                    <text x="300" y="220" text-anchor="middle" font-size="8" fill="#10b981">GROUND BALL</text>
+
+                    <!-- 2-on-1, 3-on-2 -->
+                    <circle cx="180" cy="120" r="8" fill="#10b981"/>
+                    <text x="180" y="125" text-anchor="middle" font-size="9" fill="white" font-weight="bold">2</text>
+                    <circle cx="180" cy="180" r="8" fill="#10b981"/>
+                    <text x="180" y="185" text-anchor="middle" font-size="9" fill="white" font-weight="bold">3</text>
+                    <text x="180" y="210" text-anchor="middle" font-size="8" fill="#10b981">NUMBERS UP</text>
+
+                    <!-- Attacking finish -->
+                    <circle cx="85" cy="160" r="8" fill="#ef4444"/>
+                    <text x="85" y="165" text-anchor="middle" font-size="9" fill="white" font-weight="bold">G</text>
+
+                    <circle cx="85" cy="240" r="8" fill="#ef4444"/>
+                    <text x="85" y="245" text-anchor="middle" font-size="9" fill="white" font-weight="bold">!</text>
+                    <text x="85" y="280" text-anchor="middle" font-size="8" fill="#ef4444">FINISH</text>
+
+                    <!-- Arrows showing progression -->
+                    <defs>
+                        <marker id="arrowhead2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                            <polygon points="0 0, 10 3, 0 6" fill="#10b981"/>
+                        </marker>
+                        <marker id="arrowhead3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                            <polygon points="0 0, 10 3, 0 6" fill="#ef4444"/>
+                        </marker>
+                    </defs>
+                    <line x1="300" y1="200" x2="200" y2="150" stroke="#10b981" stroke-width="2" marker-end="url(#arrowhead2)"/>
+                    <line x1="200" y1="150" x2="120" y2="180" stroke="#ef4444" stroke-width="2" marker-end="url(#arrowhead3)"/>
+                </svg>
+
+                <h4>Transition Attack Principles</h4>
+                <ul class="priority-list">
+                    <li class="p1">
+                        <span class="priority-number">1</span>
+                        <strong>Ground Balls = Transition Opportunity</strong> Every ground ball is a chance to attack in transition. Push numbers early.
+                    </li>
+                    <li class="p1">
+                        <span class="priority-number">2</span>
+                        <strong>Create Numbers Advantage</strong> If you have 3v2 or 2v1, attack immediately. Don't reset to settled offense.
+                    </li>
+                    <li class="p1">
+                        <span class="priority-number">3</span>
+                        <strong>Fast Ball Movement</strong> No extra touches. One or two passes max before shooting.
+                    </li>
+                    <li class="p2">
+                        <span class="priority-number">4</span>
+                        <strong>Avoid Defensive Support</strong> If JMU's help has arrived, reset and set offense. But in first 3 seconds, attack.
+                    </li>
+                </ul>
+
+                <h4>Man-Up Defense Analysis (Clips 12, 13, 14)</h4>
+                <p>JMU defends man-up situations (4v5, extra man offense) with multiple formations. Clip 14 shows "2-in-the-middle" variant.</p>
+
+                <svg class="svg-diagram" viewBox="0 0 600 400">
+                    <!-- Field -->
+                    <rect x="20" y="20" width="560" height="360" fill="none" stroke="#475569" stroke-width="2"/>
+                    <circle cx="85" cy="200" r="35" fill="none" stroke="#475569" stroke-width="1" stroke-dasharray="3,3"/>
+                    <circle cx="85" cy="200" r="15" fill="none" stroke="#475569" stroke-width="1"/>
+
+                    <text x="300" y="35" text-anchor="middle" font-size="14" fill="#3b82f6" font-weight="bold">JMU Man-Up Defense: 2-in-the-Middle Formation</text>
+
+                    <!-- Goal -->
+                    <circle cx="85" cy="200" r="10" fill="#ef4444" opacity="0.6"/>
+                    <text x="85" y="205" text-anchor="middle" font-size="9" fill="white" font-weight="bold">G</text>
+
+                    <!-- Middle defenders (2) -->
+                    <circle cx="120" cy="150" r="9" fill="#f97316" opacity="0.7"/>
+                    <text x="120" y="155" text-anchor="middle" font-size="8" fill="white" font-weight="bold">M1</text>
+
+                    <circle cx="120" cy="250" r="9" fill="#f97316" opacity="0.7"/>
+                    <text x="120" y="255" text-anchor="middle" font-size="8" fill="white" font-weight="bold">M2</text>
+
+                    <!-- Wings -->
+                    <circle cx="180" cy="100" r="9" fill="#fbbf24" opacity="0.6"/>
+                    <text x="180" y="105" text-anchor="middle" font-size="8" fill="white" font-weight="bold">W1</text>
+
+                    <circle cx="180" cy="300" r="9" fill="#fbbf24" opacity="0.6"/>
+                    <text x="180" y="305" text-anchor="middle" font-size="8" fill="white" font-weight="bold">W2</text>
+
+                    <!-- Help side -->
+                    <circle cx="220" cy="200" r="9" fill="#3b82f6" opacity="0.6"/>
+                    <text x="220" y="205" text-anchor="middle" font-size="8" fill="white" font-weight="bold">H</text>
+
+                    <!-- Open spaces (gaps) -->
+                    <circle cx="160" cy="140" r="12" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="3,2" opacity="0.5"/>
+                    <text x="160" y="145" text-anchor="middle" font-size="8" fill="#ef4444">GAP</text>
+
+                    <circle cx="160" cy="260" r="12" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="3,2" opacity="0.5"/>
+                    <text x="160" y="265" text-anchor="middle" font-size="8" fill="#ef4444">GAP</text>
+
+                    <!-- Legend -->
+                    <text x="350" y="100" font-size="10" fill="#f97316" font-weight="bold">M1, M2 = Middle defenders (compact)</text>
+                    <text x="350" y="120" font-size="10" fill="#fbbf24" font-weight="bold">W1, W2 = Wing defenders</text>
+                    <text x="350" y="140" font-size="10" fill="#3b82f6" font-weight="bold">H = Help/rotation</text>
+                    <text x="350" y="160" font-size="10" fill="#ef4444" font-weight="bold">Gaps = Areas to attack</text>
+                    <text x="350" y="180" font-size="9" fill="#cbd5e1" font-style="italic">Note: Formation is tight middle with open wings</text>
+                </svg>
+
+                <h4>Attack Strategies vs JMU Man-Up Defense</h4>
+                <div class="strategy-grid">
+                    <div class="strategy-box">
+                        <h4>Attack the Wings</h4>
+                        <p>2-in-the-middle formation leaves wings relatively open. Use your extra man (5v4) to overload wings. Quick swing passes to open wing shooters.</p>
+                    </div>
+                    <div class="strategy-box">
+                        <h4>High Pick & Roll</h4>
+                        <p>Set picks at top of zone to free up ball-carrier. JMU's compact middle will have to adjust; gaps open.</p>
+                    </div>
+                    <div class="strategy-box">
+                        <h4>Crease Attacks</h4>
+                        <p>If wing is covered, kick-down to crease attacker. JMU's help cannot cover all areas with 4v5.</p>
+                    </div>
+                    <div class="strategy-box">
+                        <h4>Drive & Dump</h4>
+                        <p>Drive hard at middle defenders; they collapse. Dump to open teammate on perimeter or in crease.</p>
+                    </div>
+                </div>
+
+                <h4>Man-Up Scoring Sequence</h4>
+                <div class="highlight-box">
+                    <strong>Phase 1 (First 3 seconds):</strong> Aggressive ball movement. Swing to wings or attack crease. JMU's 4 defenders cannot cover all 5 attackers.
+                    <br/><br/>
+                    <strong>Phase 2 (4-8 seconds):</strong> If initial attack doesn't yield shot, reset and re-attack different area (e.g., if first attack was wing, second is crease).
+                    <br/><br/>
+                    <strong>Phase 3 (9+ seconds):</strong> Take best available shot. JMU will have settled into their formation by now.
+                    <br/><br/>
+                    <strong>Key:</strong> Score within first 10 seconds of man-up possession. Goal rate improves with early aggression.
+                </div>
+            </div>
+        </div>
+
+        <!-- ALL CLIPS TABLE TAB -->
+        <div id="allClips" class="tab-content">
+            <div class="card">
+                <h3>Complete Clip Database</h3>
+                <p>All 14 defensive clips with sortable columns. Red text = goal allowed (defensive breakdown). Green text = defense held.</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable(0)">Clip #</th>
+                            <th onclick="sortTable(1)">Category</th>
+                            <th onclick="sortTable(2)">Defensive Scheme</th>
+                            <th onclick="sortTable(3)">Attack Action</th>
+                            <th onclick="sortTable(4)">Result</th>
+                            <th onclick="sortTable(5)">Breakdown Type</th>
+                            <th onclick="sortTable(6)">Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clipsTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- GAME PLAN TAB -->
+        <div id="gameplan" class="tab-content">
+            <div class="card">
+                <h3>UVA Attack Game Plan vs JMU Defense</h3>
+                <p>Priority-ranked offensive recommendations based on 14-clip scouting analysis. Deploy in order of effectiveness.</p>
+
+                <h4>Priority 1: MUST EXECUTE (Highest % Success)</h4>
+                <ul class="priority-list">
+                    <li class="p1">
+                        <span class="priority-number">1A</span>
+                        <strong>Motion → Drive/Cut Transition</strong>
+                        <p>Run motion offense but be READY to drive or cut aggressively. JMU's slides are late on action. As soon as defender commits, ball-carrier attacks or interior cutter attacks. 3 goals allowed in film; this is their #1 weakness.</p>
+                    </li>
+                    <li class="p1">
+                        <span class="priority-number">1B</span>
+                        <strong>Immediate Transition Attack</strong>
+                        <p>Every ground ball is a scoring opportunity. Attack with numbers advantage before JMU sets. Push 2-on-1, 3-on-2 aggressively. 2 goals in transition in film; they cannot defend unset.</p>
+                    </li>
+                </ul>
+
+                <h4>Priority 2: HIGH PROBABILITY (Secondary Weapons)</h4>
+                <ul class="priority-list">
+                    <li class="p2">
+                        <span class="priority-number">2A</span>
+                        <strong>B-Side Throwback Attack</strong>
+                        <p>Use backside throwback passes to catch JMU's defense rotated. Goal allowed on this in film. When help-side is engaged, swing ball to opposite side quickly. Open shooters available on weakside.</p>
+                    </li>
+                    <li class="p2">
+                        <span class="priority-number">2B</span>
+                        <strong>Drive Through Zone Gaps</strong>
+                        <p>Attack upper and lower zone gaps with hard drives. Gaps 1, 2, 3 (see Zone Gap tab) are exploitable. Not goal-heavy in sample but high-quality shot opportunities. Build into complementary set.</p>
+                    </li>
+                </ul>
+
+                <h4>Priority 3: SITUATIONAL (Set Plays)</h4>
+                <ul class="priority-list">
+                    <li class="p3">
+                        <span class="priority-number">3A</span>
+                        <strong>Man-Up Wing Attack</strong>
+                        <p>In man-up situations, attack wings to exploit 2-in-the-middle formation (clip 14 formation). Quick swing to open wing. 5v4 gives clear advantage on perimeter.</p>
+                    </li>
+                    <li class="p3">
+                        <span class="priority-number">3B</span>
+                        <strong>Pure Motion (Secondary)</strong>
+                        <p>Pure motion without action is least effective; JMU handles it reasonably (3 clips, no goals). Use as misdirection BEFORE executing Priority 1 or 2 attacks.</p>
+                    </li>
+                </ul>
+
+                <h4>Quick Reference: Situation Matrix</h4>
+                <div class="cheat-sheet">
+                    <div class="cheat-item">
+                        <strong>Scenario: Settled Offense</strong>
+                        <p>→ Run Priority 1A: Motion → Drive/Cut<br/>→ Be ready to attack on 2nd or 3rd touch<br/>→ Don't let ball just move; create action</p>
+                    </div>
+                    <div class="cheat-item">
+                        <strong>Scenario: Ground Ball Loose</strong>
+                        <p>→ Priority 1B: Transition Attack<br/>→ Push numbers immediately<br/>→ 2-on-1 or 3-on-2, finish quick<br/>→ Don't reset to set offense</p>
+                    </div>
+                    <div class="cheat-item">
+                        <strong>Scenario: Help Rotating Hard</strong>
+                        <p>→ Priority 2A: B-Side Throwback<br/>→ Swing opposite immediately<br/>→ Open shooter on weakside<br/>→ One-touch kick & shoot</p>
+                    </div>
+                    <div class="cheat-item">
+                        <strong>Scenario: Man-Up (Extra Man)</strong>
+                        <p>→ Priority 3A: Wing Attack<br/>→ Attack wings before crease<br/>→ 2-in-middle leaves wings open<br/>→ Quick swing, open shooter</p>
+                    </div>
+                    <div class="cheat-item">
+                        <strong>Scenario: Early Shot Clock (12+ sec)</strong>
+                        <p>→ Priority 2B: Drive Zone Gaps<br/>→ Create shooting opportunity via drive<br/>→ Set secondary attack if no shot<br/>→ Goal is opening for teammate</p>
+                    </div>
+                    <div class="cheat-item">
+                        <strong>Scenario: Nothing Working</strong>
+                        <p>→ Return to Priority 1A<br/>→ Motion to reset, then drive/cut<br/>→ If still stalled: clear and restart</p>
+                    </div>
+                </div>
+
+                <h4>In-Game Checkpoints</h4>
+                <div class="highlight-box">
+                    <strong>Q1/Q2 Focus:</strong> Test Priority 1A and 1B. Establish that JMU cannot defend motion-to-action transitions or transition attacks. Build confidence and score early.
+                    <br/><br/>
+                    <strong>Q2/Q3 Transition:</strong> If 1A/1B working, increase frequency. If JMU adjusts, pivot to 2A/2B. Mix sets to prevent them from settling into defensive rhythm.
+                    <br/><br/>
+                    <strong>Q4 Crunch:</strong> Default to Priority 1B (transition). Fastest scoring method. Move the ball to 2v1 or 3v2 situations. If game close, this is safest bet.
+                    <br/><br/>
+                    <strong>Two-Minute Drill:</strong> Eliminate mistakes. High-percentage sets only. Settled motion-to-drive (1A) or transition push (1B). No fancy sets.
+                </div>
+
+                <h4>Scouting Summary Statistics</h4>
+                <table>
+                    <tr>
+                        <td><strong>Goals Allowed by JMU in Sample</strong></td>
+                        <td>6 goals in 14 possessions (42.9%)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Goals from Priority 1A (Motion→Drive/Cut)</strong></td>
+                        <td>3 out of 6 total goals (50%)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Goals from Priority 1B (Transition)</strong></td>
+                        <td>2 out of 6 total goals (33%)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Goals from Priority 2A (B-Side Throwback)</strong></td>
+                        <td>1 out of 6 total goals (17%)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Expected Goal Rate if Executing Priorities</strong></td>
+                        <td>Conservative estimate: 4-5 goals per 10 possessions vs JMU</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== DATA STRUCTURE =====
+        const ALL = [
+            {
+                id: 1,
+                clip: '01-grinder_motion.mp4',
+                cat: 'Grinder/Motion',
+                scheme: 'Zone 2-3',
+                atk: 'Grinder ball movement',
+                result: 'stop',
+                breakdown: 'None - JMU handled',
+                slide: 'Proactive zone slides',
+                loc: 'Perimeter',
+                pace: 'settled',
+                key_players: 'Close attack D1, D2',
+                note: 'JMU zone contained ball movement. Grinder alone not effective.'
+            },
+            {
+                id: 2,
+                clip: '02-wheels_to_give_go_goal_.mp4',
+                cat: 'Wheels/Give-Go',
+                scheme: 'Zone 2-3',
+                atk: 'Wheels to give-and-go',
+                result: 'goal',
+                breakdown: 'Late slide on give-and-go',
+                slide: 'Slow help rotation',
+                loc: 'Wing',
+                pace: 'settled',
+                key_players: 'Help defender (H1 or H2)',
+                note: 'Goal allowed. Wheels action led to give-and-go; help defender too slow rotating to block pass.'
+            },
+            {
+                id: 3,
+                clip: '03-motion_.mp4',
+                cat: 'Grinder/Motion',
+                scheme: 'Zone 2-3',
+                atk: 'Motion offense',
+                result: 'stop',
+                breakdown: 'None - JMU adjusted',
+                slide: 'Responsive zone rotations',
+                loc: 'Multiple',
+                pace: 'settled',
+                key_players: 'Midfield help (M)',
+                note: 'Pure motion defense successful. JMU slides well when just moving ball without action.'
+            },
+            {
+                id: 4,
+                clip: '04-motion_to_driving_goal_.mp4',
+                cat: 'Motion to Driving/Cutting',
+                scheme: 'Zone 2-3',
+                atk: 'Motion transitioning to drive',
+                result: 'goal',
+                breakdown: 'Late slide on drive attack',
+                slide: 'Incomplete help',
+                loc: 'Interior/Crease',
+                pace: 'settled',
+                key_players: 'Close attackman (D1 or D2), help',
+                note: 'Goal allowed. Motion drew defense; drive beat slides. **KEY VULNERABILITY.**'
+            },
+            {
+                id: 5,
+                clip: '05-grinder_wheels_.mp4',
+                cat: 'Grinder/Motion',
+                scheme: 'Zone 2-3',
+                atk: 'Grinder with wheels action',
+                result: 'stop',
+                breakdown: 'None - JMU contained wheels',
+                slide: 'Active hands on wheels',
+                loc: 'Perimeter/Wing',
+                pace: 'settled',
+                key_players: 'Close attackman (D1, D2), midfield',
+                note: 'JMU stopped wheels when integrated into grinder. Pure wheels would have different outcome.'
+            },
+            {
+                id: 6,
+                clip: '06-motion_to_inside_cut_goal.mp4',
+                cat: 'Motion to Driving/Cutting',
+                scheme: 'Zone 2-3',
+                atk: 'Motion to interior cut',
+                result: 'goal',
+                breakdown: 'Poor recovery on interior cut',
+                slide: 'Defender out of position',
+                loc: 'Crease/GLE',
+                pace: 'settled',
+                key_players: 'Interior cutters, midfield help (M)',
+                note: 'Goal allowed. Motion action transitioned to hard inside cut; defense could not recover. **EXPLOITABLE.**'
+            },
+            {
+                id: 7,
+                clip: '07-_18_driving_zone_gaps_.mp4',
+                cat: 'Driving Zone Gaps',
+                scheme: 'Zone 2-3 (gaps)',
+                atk: 'Player #18 hard drive through zone',
+                result: 'stop',
+                breakdown: 'None - successful drive, no goal',
+                slide: 'Help arrived on drive',
+                loc: 'Upper zone gap',
+                pace: 'settled',
+                key_players: 'Player #18, help defenders',
+                note: '#18 exploited zone gaps with hard drive. Did not result in goal but high-quality opportunity.'
+            },
+            {
+                id: 8,
+                clip: '08-driving_zone_gaps_hard_.mp4',
+                cat: 'Driving Zone Gaps',
+                scheme: 'Zone 2-3 (gaps)',
+                atk: 'Hard drive through zone gaps',
+                result: 'stop',
+                breakdown: 'None - help defense contained',
+                slide: 'Quick help rotation',
+                loc: 'Multiple zone gaps',
+                pace: 'settled',
+                key_players: 'Help defenders (H1, H2)',
+                note: 'Hard drive through gaps attempted; JMU help contained. Gaps exist but help can recover if ready.'
+            },
+            {
+                id: 9,
+                clip: '09-B_side_throwbacks_to_goal.mp4',
+                cat: 'B-Side Throwbacks',
+                scheme: 'Zone 2-3 (help-side focused)',
+                atk: 'B-side throwback pass',
+                result: 'goal',
+                breakdown: 'Weak-side gap / poor recovery',
+                slide: 'Help overcommitted ball-side',
+                loc: 'Backside/Weakside',
+                pace: 'settled',
+                key_players: 'Help defender (ball-side), LSM',
+                note: 'Goal allowed. Throwback to weakside caught open shooter. JMU help rotated too far; weak-side undefended.'
+            },
+            {
+                id: 10,
+                clip: '10-transition_goal_.mp4',
+                cat: 'Transition Defense',
+                scheme: 'Unset zone',
+                atk: 'Transition push (2v1 or 3v2)',
+                result: 'goal',
+                breakdown: 'Unset positioning / late help',
+                slide: 'N/A - defense not set',
+                loc: 'Various',
+                pace: 'transition',
+                key_players: 'Multiple defenders behind',
+                note: 'Goal allowed. JMU caught in transition; quick attack before defense set. **MAJOR WEAKNESS.**'
+            },
+            {
+                id: 11,
+                clip: '11-transition_goal_.mp4',
+                cat: 'Transition Defense',
+                scheme: 'Unset zone',
+                atk: 'Transition attack (numbers up)',
+                result: 'goal',
+                breakdown: 'Incomplete transition setup',
+                slide: 'N/A - help not ready',
+                loc: 'Various',
+                pace: 'transition',
+                key_players: 'Entire defense',
+                note: 'Goal allowed. Another transition score. JMU defense struggles significantly in unset situations.'
+            },
+            {
+                id: 12,
+                clip: '12-man_up_.mp4',
+                cat: 'Man-Up Defense',
+                scheme: 'Man-up zone (4v5)',
+                atk: 'Man-up offense (extra man)',
+                result: 'stop',
+                breakdown: 'None - JMU held',
+                slide: 'Compact middle rotation',
+                loc: 'Perimeter',
+                pace: 'man-up',
+                key_players: 'All 4 defenders compact',
+                note: 'JMU defended man-up without goal. Formation held. Study slide patterns.'
+            },
+            {
+                id: 13,
+                clip: '13-man_up_.mp4',
+                cat: 'Man-Up Defense',
+                scheme: 'Man-up zone (4v5)',
+                atk: 'Man-up offense (extra man)',
+                result: 'stop',
+                breakdown: 'None - JMU held',
+                slide: 'Rotation on perimeter',
+                loc: 'Wing',
+                pace: 'man-up',
+                key_players: 'Wing defenders (W1, W2), help',
+                note: 'Another man-up hold. JMU defensive structure effective in this clip.'
+            },
+            {
+                id: 14,
+                clip: '14-man_up_2_in_middle_.mp4',
+                cat: 'Man-Up Defense',
+                scheme: 'Man-up 2-in-middle (4v5)',
+                atk: 'Man-up with crease focus',
+                result: 'stop',
+                breakdown: 'None - JMU held',
+                slide: 'Two middle defenders compact',
+                loc: 'Crease/Interior',
+                pace: 'man-up',
+                key_players: 'M1, M2 (middle), help rotation',
+                note: 'Man-up 2-in-middle formation tested. JMU held but wings were open. Potential weakness.'
+            }
+        ];
+
+        let charts = {};
+        let currentFilter = 'all';
+
+        // ===== INITIALIZATION =====
+        function init() {
+            renderStats();
+            renderCategoryFilters();
+            renderClipSelects();
+            renderAllClipsTable();
+            switchTab('summary');
+        }
+
+        // ===== STATS RENDERING =====
+        function renderStats() {
+            const statsRow = document.getElementById('statsRow');
+            statsRow.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">14</div>
+                    <div class="stat-label">Total Clips</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">6</div>
+                    <div class="stat-label">Goals Allowed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">8</div>
+                    <div class="stat-label">Defense Held</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">Categories</div>
+                </div>
+            `;
+        }
+
+        // ===== CATEGORY FILTERS =====
+        function renderCategoryFilters() {
+            const filterPills = document.getElementById('categoryFilters');
+            const categories = ['All', 'Grinder/Motion', 'Wheels/Give-Go', 'Motion to Driving/Cutting', 'Driving Zone Gaps', 'B-Side Throwbacks', 'Transition Defense', 'Man-Up Defense'];
+
+            filterPills.innerHTML = categories.map(cat =>
+                `<button class="pill ${cat === 'All' ? 'active' : ''}" onclick="filterByCategory('${cat}', this)">${cat}</button>`
+            ).join('');
+        }
+
+        function filterByCategory(cat, el) {
+            currentFilter = cat;
+            document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+            if (el) el.classList.add('active');
+        }
+
+        // ===== CLIP SELECTS =====
+        function renderClipSelects() {
+            const clipSelect = document.getElementById('clipSelect');
+            const clipDetailSelect = document.getElementById('clipDetailSelect');
+
+            const options = ALL.map(c => `<option value="${c.id}">${c.id}: ${c.clip}</option>`).join('');
+            clipSelect.innerHTML = '<option value="">Choose a clip...</option>' + options;
+            clipDetailSelect.innerHTML = '<option value="">Choose a clip...</option>' + options;
+        }
+
+        function jumpToClip() {
+            const val = document.getElementById('clipSelect').value;
+            if (val) {
+                switchTab('clipDetail');
+                document.getElementById('clipDetailSelect').value = val;
+                updateClipDetail();
+            }
+        }
+
+        // ===== CLIP DETAIL =====
+        function updateClipDetail() {
+            const val = document.getElementById('clipDetailSelect').value;
+            const clip = ALL.find(c => c.id == val);
+            const content = document.getElementById('clipDetailContent');
+
+            if (!clip) {
+                content.innerHTML = '';
+                return;
+            }
+
+            const resultBadge = clip.result === 'goal'
+                ? '<span class="result-badge goal">GOAL ALLOWED</span>'
+                : '<span class="result-badge stop">DEFENSE HELD</span>';
+
+            content.innerHTML = `
+                <div class="clip-detail-card">
+                    <div style="margin-bottom: 20px;">
+                        ${resultBadge}
+                    </div>
+                    <div class="clip-detail-row">
+                        <div class="clip-detail-label">Clip ID:</div>
+                        <div class="clip-detail-value">${clip.id}</div>
+                    </div>
+                    <div class="clip-detail-row">
+                        <div class="clip-detail-label">Filename:</div>
+                        <div class="clip-detail-value">${clip.clip}</div>
+                    </div>
+                    <div class="clip-detail-row">
+                        <div class="clip-detail-label">Category:</div>
+                        <div class="clip-detail-value">${clip.cat}</div>
+                    </div>
+                    <div class="clip-detail-row">
+                        <div class="clip-detail-label">Defensive Scheme:</div>
+                        <div class="clip-detail-value">${clip.scheme}</div>
+                    </div>
+                    <div class="clip-detail-row">
+                        <div class="clip-detail-label">Attack Action:</div>
+                        <div class="clip-detail-value">${clip.atk}</div>
+                    </div>
+                    <div class="clip-detail-row">
+                        <div class="clip-detail-label">Breakdown Type:</div>
+                        <div class="clip-detail-value"><span class="breakdown-type">${clip.breakdown}</span></div>
+                    </div>
+                    <div class="clip-detail-row">
+                        <div class="clip-detail-label">Slide System:</div>
+                        <div class="clip-detail-value">${clip.slide}</div>
+                    </div>
+                    <div class="clip-detail-row">
+                        <div class="clip-detail-label">Location:</div>
+                        <div class="clip-detail-value">${clip.loc}</div>
+                    </div>
+                    <div class="clip-detail-row">
+                        <div class="clip-detail-label">Pace:</div>
+                        <div class="clip-detail-value">${clip.pace}</div>
+                    </div>
+                    <div class="clip-detail-row">
+                        <div class="clip-detail-label">Key Players:</div>
+                        <div class="clip-detail-value">${clip.key_players}</div>
+                    </div>
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #475569;">
+                        <div style="color: #3b82f6; font-weight: bold; margin-bottom: 10px;">Scouting Notes:</div>
+                        <div style="color: #cbd5e1; line-height: 1.6;">${clip.note}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ===== ALL CLIPS TABLE =====
+        function renderAllClipsTable() {
+            const tbody = document.getElementById('clipsTableBody');
+            tbody.innerHTML = ALL.map(c => `
+                <tr>
+                    <td><span class="clip-link" onclick="jumpToClipDetail(${c.id})">${c.id}</span></td>
+                    <td>${c.cat}</td>
+                    <td>${c.scheme}</td>
+                    <td>${c.atk}</td>
+                    <td ${c.result === 'goal' ? 'class="goal-allowed"' : 'class="goal-stopped"'}>
+                        ${c.result === 'goal' ? '⚠️ GOAL' : '✓ STOP'}
+                    </td>
+                    <td>${c.breakdown}</td>
+                    <td style="max-width: 200px; font-size: 0.9em;">${c.note}</td>
+                </tr>
+            `).join('');
+        }
+
+        function jumpToClipDetail(id) {
+            switchTab('clipDetail');
+            document.getElementById('clipDetailSelect').value = id;
+            updateClipDetail();
+        }
+
+        function sortTable(col) {
+            const tbody = document.getElementById('clipsTableBody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            rows.sort((a, b) => {
+                const aVal = a.children[col].textContent;
+                const bVal = b.children[col].textContent;
+                return aVal.localeCompare(bVal);
+            });
+            tbody.innerHTML = rows.map(r => r.outerHTML).join('');
+        }
+
+        // ===== TAB SWITCHING =====
+        function switchTab(tab, el) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+            document.getElementById(tab).classList.add('active');
+            if (el) {
+                el.classList.add('active');
+            } else {
+                document.querySelectorAll('.tab-btn').forEach(b => {
+                    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + tab + "'")) b.classList.add('active');
+                });
+            }
+
+            setTimeout(() => {
+                if (tab === 'summary') renderCharts();
+                if (tab === 'breakdown') renderBreakdownChart();
+            }, 100);
+        }
+
+        // ===== CHARTS =====
+        function renderCharts() {
+            renderCategoryChart();
+            renderGoalsChart();
+        }
+
+        function renderCategoryChart() {
+            const ctx = document.getElementById('categoryChart');
+            if (!ctx) return;
+
+            if (charts.category) charts.category.destroy();
+
+            const data = {
+                'Grinder/Motion': 3,
+                'Wheels/Give-Go': 1,
+                'Motion to Driving/Cutting': 2,
+                'Driving Zone Gaps': 2,
+                'B-Side Throwbacks': 1,
+                'Transition Defense': 2,
+                'Man-Up Defense': 3
+            };
+
+            charts.category = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        data: Object.values(data),
+                        backgroundColor: [
+                            '#3b82f6', '#8b5cf6', '#ec4899', '#f97316', '#eab308', '#ef4444', '#10b981'
+                        ],
+                        borderColor: '#1e293b',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#cbd5e1' } }
+                    }
+                }
+            });
+        }
+
+        function renderGoalsChart() {
+            const ctx = document.getElementById('goalsChart');
+            if (!ctx) return;
+
+            if (charts.goals) charts.goals.destroy();
+
+            charts.goals = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Motion→Drive/Cut', 'Transition', 'B-Side Throwback', 'Wheels/Give-Go', 'Zone Gaps', 'Grinder/Motion', 'Man-Up'],
+                    datasets: [{
+                        label: 'Goals Allowed',
+                        data: [3, 2, 1, 1, 0, 0, 0],
+                        backgroundColor: ['#ef4444', '#f97316', '#fbbf24', '#ec4899', '#3b82f6', '#10b981', '#10b981'],
+                        borderColor: '#475569',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#cbd5e1' } } },
+                    scales: {
+                        x: { ticks: { color: '#cbd5e1' }, grid: { color: '#475569' } },
+                        y: { ticks: { color: '#cbd5e1' } }
+                    }
+                }
+            });
+        }
+
+        function renderBreakdownChart() {
+            const ctx = document.getElementById('breakdownChart');
+            if (!ctx) return;
+
+            if (charts.breakdown) charts.breakdown.destroy();
+
+            charts.breakdown = new Chart(ctx, {
+                type: 'horizontalBar',
+                type: 'bar',
+                data: {
+                    labels: ['Zone Gaps', 'Late Slides', 'Poor Recovery', 'Transition Weakness'],
+                    datasets: [{
+                        label: 'Breakdown Frequency',
+                        data: [2, 3, 1, 2],
+                        backgroundColor: ['#3b82f6', '#ef4444', '#f97316', '#fbbf24'],
+                        borderColor: '#475569',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#cbd5e1' } } },
+                    scales: {
+                        x: { ticks: { color: '#cbd5e1' }, grid: { color: '#475569' } },
+                        y: { ticks: { color: '#cbd5e1' } }
+                    }
+                }
+            });
+        }
+
+        // ===== INITIALIZATION =====
+        init();
+    </script>
+</body>
+</html>

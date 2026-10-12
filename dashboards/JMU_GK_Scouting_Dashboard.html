@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JMU GK Scouting Dashboard — All Shots Against JMU 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--navy:#232D4B;--navy2:#1a2238;--orange:#E57200;--bg:#F5F6F8;--card:#fff;--border:#e2e6ee;--text:#1a1e2e;--muted:#6b7280;--save:#22c55e;--goal:#ef4444;--wide:#94a3b8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+#hdr{background:var(--navy);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.hav{width:52px;height:52px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:22px;flex-shrink:0}
+.hin{flex:1;min-width:0}
+.hnm{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.04em;line-height:1}
+.hsu{font-size:11px;color:rgba(255,255,255,.6);font-family:'Barlow Condensed',sans-serif;letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
+.hmt{display:flex;gap:8px;margin-top:5px;flex-wrap:wrap}
+.hbg{font-size:10px;font-family:'Barlow Condensed',sans-serif;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.75);padding:2px 8px;border-radius:100px;letter-spacing:.05em}
+.hsc{margin-left:auto;text-align:right;flex-shrink:0}
+.sbox{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:.06em;line-height:1;display:flex;align-items:center;gap:10px}
+.sopp{color:var(--orange)}.suva{color:#96a8d0}.ssep{color:rgba(255,255,255,.3)}
+.slbl{font-size:10px;font-family:'Barlow Condensed',sans-serif;color:rgba(255,255,255,.45);letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
+#krow{display:flex;background:var(--navy2);border-bottom:3px solid var(--orange);overflow-x:auto}
+.kpi{flex:1;min-width:80px;padding:10px 12px;text-align:center;border-right:1px solid rgba(255,255,255,.07)}
+.kpi:last-child{border-right:none}
+.kv{font-family:'Bebas Neue',sans-serif;font-size:24px;color:#fff;line-height:1}
+.kv.pos{color:#4ade80}.kv.neg{color:#f87171}.kv.neu{color:var(--orange)}
+.kl{font-size:9px;font-family:'Barlow Condensed',sans-serif;color:rgba(255,255,255,.45);letter-spacing:.07em;text-transform:uppercase;margin-top:2px;line-height:1.2}
+#fbar{background:var(--navy);padding:10px 24px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,.08)}
+.fl{font-size:10px;font-family:'Barlow Condensed',sans-serif;color:rgba(255,255,255,.4);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.chip{font-size:11px;font-family:'Barlow Condensed',sans-serif;padding:4px 10px;border-radius:100px;border:1px solid rgba(255,255,255,.2);background:transparent;color:rgba(255,255,255,.65);cursor:pointer;transition:all .15s;letter-spacing:.04em;white-space:nowrap}
+.chip:hover{border-color:var(--orange);color:#fff}
+.chip.on{background:var(--orange);border-color:var(--orange);color:#fff}
+.chip.sv.on{background:var(--save);border-color:var(--save)}
+.chip.gl.on{background:var(--goal);border-color:var(--goal)}
+.chip.wl.on{background:var(--wide);border-color:var(--wide);color:#000}
+.fdiv{width:1px;height:20px;background:rgba(255,255,255,.12);margin:0 4px}
+.gsel{font-size:12px;font-family:'Barlow Condensed',sans-serif;padding:5px 14px;border-radius:100px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#fff;cursor:pointer;outline:none;margin-left:auto}
+.gsel option{background:#1a2238;color:#fff}
+#tabs{display:flex;background:var(--card);border-bottom:2px solid var(--border);padding:0 24px;position:sticky;top:0;z-index:90;box-shadow:0 1px 4px rgba(35,45,75,.08)}
+.tb{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:13px 18px;border:none;border-bottom:3px solid transparent;background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;margin-bottom:-2px}
+.tb:hover{color:var(--navy)}.tb.on{color:var(--navy);border-bottom-color:var(--orange)}
+#content{padding:20px 24px;max-width:1600px;margin:0 auto}
+.tp{display:none}.tp.on{display:block}
+.sh{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.1em;color:var(--navy);border-left:3px solid var(--orange);padding-left:9px;margin-bottom:12px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+@media(max-width:900px){.g2,.g3,.g4,.g5{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;box-shadow:0 1px 4px rgba(35,45,75,.06);margin-bottom:16px}
+.dark{background:var(--navy);border-color:var(--navy2);color:#fff}
+.dark .sh{color:rgba(255,255,255,.9)}
+.ggrid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;aspect-ratio:1.8}
+.gcell{display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:4px;padding:4px}
+.gcn{font-family:'Bebas Neue',sans-serif;font-size:19px;line-height:1}
+.gcp{font-size:9px;font-family:'JetBrains Mono',monospace;opacity:.7;margin-top:1px}
+.stbl{width:100%;border-collapse:collapse;font-size:12px}
+.stbl th{background:var(--navy);color:rgba(255,255,255,.7);font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:7px 10px;text-align:left;white-space:nowrap}
+.stbl td{padding:6px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.stbl tr:hover td{background:#f0f4ff;cursor:pointer}
+.stbl tr.sel td{background:#EBF0FF;border-left:3px solid var(--orange)}
+.badge{font-size:10px;font-family:'Barlow Condensed',sans-serif;padding:2px 7px;border-radius:100px;font-weight:600;white-space:nowrap;display:inline-block}
+.bSAVE{background:#dcfce7;color:#166534}.bGOAL{background:#fee2e2;color:#991b1b}
+.bWIDE{background:#f1f5f9;color:#475569}.bFP{background:#ede9fe;color:#5b21b6}
+.bPP{background:#fef3c7;color:#92400e}.bEV{background:#f1f5f9;color:#374151}
+.bgm{font-size:10px;padding:2px 6px;border-radius:100px;background:var(--navy);color:#fff;font-family:'JetBrains Mono',monospace}
+#dp{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px;display:none;margin-top:12px}
+.dpg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.dpi{background:#f8f9fc;border-radius:6px;padding:8px 10px}
+.dpl{font-size:10px;font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:2px}
+.dpv{font-size:13px;font-weight:600;color:var(--text)}
+.cw{position:relative;height:200px}.cw canvas{max-height:200px}
+.cwsm{position:relative;height:155px}.cwsm canvas{max-height:155px}
+.cwr{position:relative;height:290px}.cwr canvas{max-height:290px}
+.dtbl{width:100%;border-collapse:collapse;font-size:12px}
+.dtbl th{background:#f0f4ff;color:var(--navy);font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:7px 10px;text-align:left}
+.dtbl td{padding:7px 10px;border-bottom:1px solid var(--border)}
+.dtbl tr:last-child td{border-bottom:none}
+.pc{background:#1e2a45;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px;margin-bottom:8px}
+.pc:last-child{margin-bottom:0}
+.pt{font-size:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--orange);margin-bottom:5px}
+.pb{font-size:12px;color:rgba(255,255,255,.72);line-height:1.5}
+.arch{background:linear-gradient(135deg,var(--navy),#2a3a6e);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:20px;color:#fff;display:flex;align-items:flex-start;gap:20px;margin-bottom:16px}
+.aico{width:54px;height:54px;border-radius:10px;background:var(--orange);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;margin-top:2px}
+.anm{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.05em}
+.asu{font-size:11px;color:rgba(255,255,255,.5);font-family:'Barlow Condensed',sans-serif;letter-spacing:.05em}
+.ade{font-size:12px;color:rgba(255,255,255,.7);line-height:1.6;margin-top:8px}
+.swi{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;line-height:1.45}
+.swi:last-child{border-bottom:none}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.dg{background:var(--save)}.dr{background:var(--goal)}
+.tscr{max-height:360px;overflow-y:auto;border-radius:8px;border:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="hdr">
+  <div class="hav">JMU</div>
+  <div class="hin">
+    <div class="hnm">JMU GOALKEEPER SCOUTING &nbsp;<span style="color:var(--orange)">2026</span></div>
+    <div class="hsu">All Shots Against JMU &nbsp;&middot;&nbsp; 5 Games Analyzed &nbsp;&middot;&nbsp; 2026 Season</div>
+    <div class="hmt">
+      <span class="hbg" id="hb-date">2026 Season</span>
+      <span class="hbg" id="hb-venue">5 Games</span>
+      <span class="hbg" id="hb-clips">109 clips</span>
+      <span class="hbg" id="hb-rec">Season Data</span>
+    </div>
+  </div>
+  <div class="hsc">
+    <div class="sbox"><span class="sopp" id="sc-l"></span><span class="ssep">&middot;</span><span class="suva" id="sc-r"></span></div>
+    <div class="slbl" id="sc-lbl"></div>
+  </div>
+</div>
+
+<!-- KPI ROW -->
+<div id="krow">
+  <div class="kpi"><div class="kv" id="k-sh">0</div><div class="kl">Shots Faced</div></div>
+  <div class="kpi"><div class="kv pos" id="k-sv">0</div><div class="kl">Saves Made</div></div>
+  <div class="kpi"><div class="kv neg" id="k-ga">0</div><div class="kl">Goals Allowed</div></div>
+  <div class="kpi"><div class="kv" id="k-sp">0%</div><div class="kl">Save %</div></div>
+  <div class="kpi"><div class="kv" id="k-fp">0%</div><div class="kl">FP Save %</div></div>
+  <div class="kpi"><div class="kv" id="k-cr">0%</div><div class="kl">Crease SV%</div></div>
+  <div class="kpi"><div class="kv" id="k-ev">0%</div><div class="kl">EV Save %</div></div>
+  <div class="kpi"><div class="kv neg" id="k-pp">0</div><div class="kl">Man-Up GA</div></div>
+  <div class="kpi"><div class="kv" id="k-hd">0%</div><div class="kl">High-Danger SV%</div></div>
+  <div class="kpi"><div class="kv" id="k-lt">0%</div><div class="kl">Late-Q SV%</div></div>
+</div>
+
+<!-- FILTER BAR -->
+<div id="fbar">
+  <span class="fl">Result:</span>
+  <button class="chip on" data-f="result" data-v="ALL">ALL</button>
+  <button class="chip sv" data-f="result" data-v="SAVE">SAVE</button>
+  <button class="chip gl" data-f="result" data-v="GOAL">GOAL</button>
+  <button class="chip wl" data-f="result" data-v="WIDE">OFF-TARGET</button>
+  <div class="fdiv"></div>
+  <span class="fl">Sit:</span>
+  <button class="chip on" data-f="sit" data-v="ALL">ALL</button>
+  <button class="chip" data-f="sit" data-v="FP">FREE POS</button>
+  <button class="chip" data-f="sit" data-v="PP">MAN-UP</button>
+  <button class="chip" data-f="sit" data-v="EV">EVEN STR</button>
+  <div class="fdiv"></div>
+  <span class="fl">Zone:</span>
+  <button class="chip on" data-f="zone" data-v="ALL">ALL</button>
+  <button class="chip" data-f="zone" data-v="Crease">CREASE</button>
+  <button class="chip" data-f="zone" data-v="11m">11M AREA</button>
+  <button class="chip" data-f="zone" data-v="Outside">OUTSIDE</button>
+  <select class="gsel" id="gsel">
+    <option value="ALL">All Games (5 Games)</option>
+    <option value="LIB">vs Liberty (9 shots)</option>
+    <option value="USF">vs USF (26 shots)</option>
+    <option value="ECU">vs East Carolina (22 shots)</option>
+    <option value="UMD">vs Maryland (32 shots)</option>
+    <option value="JHU">vs Johns Hopkins (20 shots)</option>
+  </select>
+</div>
+
+<!-- TABS -->
+<div id="tabs">
+  <button class="tb on" data-tab="t1">&#128205; Shot Intelligence</button>
+  <button class="tb" data-tab="t2">&#128202; Analytics</button>
+  <button class="tb" data-tab="t3">&#128269; Analysis</button>
+  <button class="tb" data-tab="t4">&#127947; Progression</button>
+</div>
+
+<div id="content">
+
+<!-- TAB 1: Shot Intelligence -->
+<div class="tp on" id="t1">
+  <div class="g2" style="grid-template-columns:1.1fr 1fr">
+    <div class="card" style="margin-bottom:0">
+      <div class="sh">Shot Origin Map</div>
+      <svg id="fsvg" viewBox="0 0 400 310" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">
+        <defs><radialGradient id="fg" cx="50%" cy="60%" r="60%"><stop offset="0%" stop-color="#2e7d3e"/><stop offset="100%" stop-color="#1a5228"/></radialGradient></defs>
+        <rect width="400" height="310" rx="8" fill="url(#fg)"/>
+        <rect x="20" y="20" width="360" height="270" rx="3" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1.5"/>
+        <line x1="20" y1="175" x2="380" y2="175" stroke="rgba(255,255,255,.15)" stroke-width="1" stroke-dasharray="6,4"/>
+        <ellipse cx="200" cy="78" rx="115" ry="88" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <ellipse cx="200" cy="58" rx="72" ry="56" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.5"/>
+        <rect x="168" y="14" width="64" height="28" rx="2" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.55)" stroke-width="1.5"/>
+        <line x1="168" y1="42" x2="232" y2="42" stroke="rgba(255,255,255,.45)" stroke-width="1"/>
+        <circle cx="200" cy="42" r="18" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1" stroke-dasharray="3,2"/>
+        <text x="200" y="113" text-anchor="middle" fill="rgba(255,255,255,.35)" font-family="Barlow Condensed,sans-serif" font-size="10" letter-spacing="2">11M AREA</text>
+        <text x="200" y="78" text-anchor="middle" fill="rgba(255,255,255,.3)" font-family="Barlow Condensed,sans-serif" font-size="9">8M</text>
+        <text x="200" y="29" text-anchor="middle" fill="rgba(255,255,255,.4)" font-family="Barlow Condensed,sans-serif" font-size="8">GOAL</text>
+        <g id="fdots"></g>
+      </svg>
+      <div style="display:flex;gap:14px;margin-top:10px;flex-wrap:wrap">
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)"><svg width="10" height="10"><circle cx="5" cy="5" r="4" fill="#ef4444" opacity=".8"/></svg>Goal</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)"><svg width="10" height="10"><circle cx="5" cy="5" r="4" fill="#22c55e" opacity=".8"/></svg>Save</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)"><svg width="10" height="10"><circle cx="5" cy="5" r="4" fill="#94a3b8" opacity=".6"/></svg>Off-Target</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card" style="margin-bottom:0">
+        <div class="sh">Goal Zone Heatmaps</div>
+        <div class="g3">
+          <div>
+            <div style="font-size:10px;font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.07em;color:#ef4444;font-weight:700;margin-bottom:5px;text-align:center">Goals Allowed</div>
+            <div class="ggrid" id="gz-g"></div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.07em;color:#22c55e;font-weight:700;margin-bottom:5px;text-align:center">Saves Made</div>
+            <div class="ggrid" id="gz-s"></div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.07em;color:var(--navy);font-weight:700;margin-bottom:5px;text-align:center">Save %</div>
+            <div class="ggrid" id="gz-p"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div class="sh">Shot Placement on Frame</div>
+        <svg id="ssvg" viewBox="0 0 280 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">
+          <defs><linearGradient id="gbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a2640"/><stop offset="100%" stop-color="#0d1520"/></linearGradient></defs>
+          <rect width="280" height="155" rx="6" fill="url(#gbg)"/>
+          <rect x="30" y="12" width="220" height="128" rx="2" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="2"/>
+          <line x1="30" y1="54.7" x2="250" y2="54.7" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+          <line x1="30" y1="97.3" x2="250" y2="97.3" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+          <line x1="103.3" y1="12" x2="103.3" y2="140" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+          <line x1="176.7" y1="12" x2="176.7" y2="140" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+          <text x="67" y="30" text-anchor="middle" fill="rgba(255,255,255,.2)" font-family="Barlow Condensed" font-size="7">TOP-L</text>
+          <text x="140" y="30" text-anchor="middle" fill="rgba(255,255,255,.2)" font-family="Barlow Condensed" font-size="7">TOP-C</text>
+          <text x="213" y="30" text-anchor="middle" fill="rgba(255,255,255,.2)" font-family="Barlow Condensed" font-size="7">TOP-R</text>
+          <text x="67" y="130" text-anchor="middle" fill="rgba(255,255,255,.2)" font-family="Barlow Condensed" font-size="7">LOW-L</text>
+          <text x="140" y="130" text-anchor="middle" fill="rgba(255,255,255,.2)" font-family="Barlow Condensed" font-size="7">LOW-C</text>
+          <text x="213" y="130" text-anchor="middle" fill="rgba(255,255,255,.2)" font-family="Barlow Condensed" font-size="7">LOW-R</text>
+          <g id="sdots"></g>
+        </svg>
+        <div style="display:flex;gap:14px;margin-top:8px;flex-wrap:wrap">
+          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)"><svg width="10" height="10"><circle cx="5" cy="5" r="4" fill="#ef4444" opacity=".8"/></svg>Goal</span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)"><svg width="10" height="10"><circle cx="5" cy="5" r="4" fill="#22c55e" opacity=".8"/></svg>Save</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px;margin-bottom:0">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="sh" style="margin-bottom:0">Complete Shot Log</div>
+      <div id="scnt" style="font-size:11px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;letter-spacing:.05em"></div>
+    </div>
+    <div class="tscr">
+      <table class="stbl">
+        <thead><tr><th>#</th><th>Game</th><th>Qtr</th><th>Time</th><th>Score</th><th>Result</th><th>Shooter</th><th>Origin Zone</th><th>Sit</th><th>Goal Zone</th><th>Difficulty</th></tr></thead>
+        <tbody id="stb"></tbody>
+      </table>
+    </div>
+    <div id="dp">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div class="sh" style="margin-bottom:0;font-size:14px" id="dp-t">Shot Detail</div>
+        <span id="dp-b" class="badge"></span>
+        <button id="dp-x" style="margin-left:auto;font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer">&#10005; Close</button>
+      </div>
+      <div class="dpg" id="dp-g"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Shot Tooltip -->
+<div id="shot-tip" style="display:none;position:fixed;z-index:9999;pointer-events:none;background:#232D4B;color:#fff;padding:6px 10px;border-radius:6px;font-size:11px;font-family:'Barlow Condensed',sans-serif;box-shadow:0 4px 12px rgba(0,0,0,.3);max-width:220px;line-height:1.5;white-space:nowrap"></div>
+
+<!-- TAB 2: Analytics -->
+<div class="tp" id="t2">
+  <div class="g2" style="margin-bottom:0">
+    <div class="card" style="margin-bottom:0">
+      <div class="sh">Root Cause &middot; Goals Allowed</div>
+      <div style="display:flex;gap:16px;align-items:center">
+        <div style="flex:0 0 148px;height:148px;position:relative"><canvas id="c-donut"></canvas></div>
+        <div style="flex:1">
+          <table class="dtbl" id="t-root"><thead><tr><th>Category</th><th>GA</th><th>%</th></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="sh">xSave Model &middot; By Difficulty</div>
+      <div class="cw"><canvas id="c-xsave"></canvas></div>
+    </div>
+  </div>
+  <div style="height:14px"></div>
+  <div class="g2" style="margin-bottom:0">
+    <div class="card" style="margin-bottom:0">
+      <div class="sh">Quarter Breakdown</div>
+      <table class="dtbl" id="t-q"><thead><tr><th>Quarter</th><th>Shots</th><th>Goals</th><th>Saves</th><th>Off-Tgt</th><th>Save%</th></tr></thead><tbody></tbody></table>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="sh">Save% vs Difficulty</div>
+      <div class="cw"><canvas id="c-diff"></canvas></div>
+    </div>
+  </div>
+  <div style="height:14px"></div>
+  <div class="sh" style="margin-bottom:10px">Save % by Category</div>
+  <div class="g5">
+    <div class="card" style="margin-bottom:0"><div class="sh" style="font-size:11px">Shot Type</div><div class="cwsm"><canvas id="c-st"></canvas></div></div>
+    <div class="card" style="margin-bottom:0"><div class="sh" style="font-size:11px">Situation</div><div class="cwsm"><canvas id="c-sit"></canvas></div></div>
+    <div class="card" style="margin-bottom:0"><div class="sh" style="font-size:11px">Release Arm</div><div class="cwsm"><canvas id="c-ra"></canvas></div></div>
+    <div class="card" style="margin-bottom:0"><div class="sh" style="font-size:11px">Field Zone</div><div class="cwsm"><canvas id="c-fz"></canvas></div></div>
+    <div class="card" style="margin-bottom:0"><div class="sh" style="font-size:11px">Goal Zone Row</div><div class="cwsm"><canvas id="c-gz"></canvas></div></div>
+  </div>
+  <div style="height:14px"></div>
+  <div class="card" style="margin-bottom:0">
+    <div class="sh">Shot Type Breakdown Table</div>
+    <table class="dtbl" id="t-st"><thead><tr><th>Shot Type</th><th>Shots</th><th>Goals</th><th>Saves</th><th>Off-Tgt</th><th>Save%</th></tr></thead><tbody></tbody></table>
+  </div>
+</div>
+
+<!-- TAB 3: Analysis -->
+<div class="tp" id="t3">
+  <div class="arch">
+    <div class="aico">&#127951;</div>
+    <div>
+      <div class="anm">JMU GOALKEEPER SCOUTING PROFILE</div>
+      <div class="asu">Pre-Game Scouting &middot; All Opponents vs JMU &middot; 2026 Season</div>
+      <div class="ade">This dashboard aggregates all 109 shots taken against JMU across 5 games (Liberty, USF, East Carolina, Maryland, Johns Hopkins). Data extracted from video analysis of all 109 shot clips across 5 games. Use the filters and shot log to analyze patterns in the JMU goalkeeper's tendencies, strengths, and vulnerabilities.</div>
+    </div>
+  </div>
+  <div class="g2" style="margin-bottom:0">
+    <div class="card" style="margin-bottom:0">
+      <div class="sh">Performance Radar &middot; vs NCAA D1 Avg</div>
+      <div class="cwr"><canvas id="c-radar"></canvas></div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="sh" style="color:#22c55e">&#9989; Strengths</div>
+        <div id="analysis-strengths"></div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div class="sh" style="color:#ef4444">&#9888;&#65039; Vulnerabilities</div>
+        <div id="analysis-vulns"></div>
+      </div>
+    </div>
+  </div>
+  <div style="height:14px"></div>
+  <div class="g2" style="margin-bottom:0">
+    <div class="card dark" style="margin-bottom:0">
+      <div class="sh">&#128270; Key Patterns</div>
+      <div id="analysis-patterns" style="margin-top:8px"></div>
+    </div>
+    <div class="card dark" style="margin-bottom:0">
+      <div class="sh">&#128203; Scouting Report</div>
+      <div id="analysis-report" style="margin-top:8px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 4: Progression -->
+<div class="tp" id="t4">
+  <div class="card" style="margin-bottom:16px">
+    <div class="sh">Season Progression &middot; Save% by Game</div>
+    <div class="cw" style="height:175px"><canvas id="c-prog"></canvas></div>
+  </div>
+  <div class="card" style="margin-bottom:0">
+    <div class="sh">Game-by-Game Summary</div>
+    <table class="dtbl" id="t-gbg"><thead><tr><th>Game</th><th>Shots</th><th>Goals</th><th>Saves</th><th>Off-Tgt</th><th>Save%</th></tr></thead><tbody></tbody></table>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+// ═══════════════════════════════════════════════════════ DATA
+// 109 shots across 5 games — DATA FROM VIDEO ANALYSIS
+const SHOTS = [
+  // ── LIBERTY vs JMU (9 shots) ──
+  {id:1,game:"LIB",q:"Q1",t:"8:57",sc:"0-2",r:"SAVE",sh:"Shooter #TBD",st:"Time & Room",fz:"8m Area",gz:"MID-C",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:53,oy:20,gx:0.46,gy:0.46},
+  {id:2,game:"LIB",q:"Q1",t:"6:03",sc:"1-4",r:"SAVE",sh:"Shooter #TBD",st:"Free Position",fz:"11m Hash L",gz:"MID-R",sit:"FP",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:32,oy:31,gx:0.81,gy:0.43},
+  {id:3,game:"LIB",q:"Q1",t:"6:00",sc:"1-5",r:"SAVE",sh:"Shooter #TBD",st:"Free Position",fz:"11m Hash R",gz:"TOP-C",sit:"FP",ast:false,astr:"",ra:"Overhand",traj:"Rising",dn:"Moderate",gg:"B+",ox:64,oy:28,gx:0.45,gy:0.86},
+  {id:4,game:"LIB",q:"Q2",t:"10:30",sc:"1-5",r:"WIDE",sh:"Shooter #TBD",st:"On the Run",fz:"Outside Wing L",gz:"—",sit:"EV",ast:false,astr:"",ra:"Sidearm",traj:"",dn:"Difficult",gg:"",ox:14,oy:39,gx:null,gy:null},
+  {id:5,game:"LIB",q:"Q3",t:"8:15",sc:"2-8",r:"GOAL",sh:"Shooter #TBD",st:"Dodge Finish",fz:"Crease",gz:"LOW-L",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"High Danger",gg:"D",ox:52,oy:12,gx:0.16,gy:0.16},
+  {id:6,game:"LIB",q:"Q3",t:"6:30",sc:"2-9",r:"SAVE",sh:"Shooter #TBD",st:"Time & Room",fz:"8m Area",gz:"TOP-L",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Rising",dn:"Moderate",gg:"B+",ox:56,oy:22,gx:0.17,gy:0.84},
+  {id:7,game:"LIB",q:"Q4",t:"4:20",sc:"3-11",r:"SAVE",sh:"Shooter #TBD",st:"Time & Room",fz:"8m Area",gz:"MID-R",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:43,oy:28,gx:0.71,gy:0.48},
+  {id:8,game:"LIB",q:"Q4",t:"2:10",sc:"3-12",r:"WIDE",sh:"Shooter #TBD",st:"Quick Stick",fz:"Outside Wing R",gz:"—",sit:"EV",ast:false,astr:"",ra:"Sidearm",traj:"",dn:"Difficult",gg:"",ox:77,oy:38,gx:null,gy:null},
+  {id:9,game:"LIB",q:"Q4",t:"1:05",sc:"3-13",r:"GOAL",sh:"Shooter #TBD",st:"Inside Finish",fz:"Crease",gz:"LOW-C",sit:"EV",ast:true,astr:"#TBD",ra:"Overhand",traj:"Downward",dn:"High Danger",gg:"D",ox:50,oy:10,gx:0.49,gy:0.11},
+  // ── USF vs JMU (26 shots) ──
+  {id:10,game:"USF",q:"Q1",t:"14:00",sc:"0-0",r:"SAVE",sh:"Shooter #TBD",st:"On the Run",fz:"8m Area",gz:"MID-C",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:40,oy:23,gx:0.53,gy:0.56},
+  {id:11,game:"USF",q:"Q1",t:"12:15",sc:"0-0",r:"GOAL",sh:"Shooter #TBD",st:"Free Position",fz:"11m Hash L",gz:"LOW-L",sit:"FP",ast:false,astr:"",ra:"Overhand",traj:"Downward",dn:"Moderate",gg:"C",ox:29,oy:29,gx:0.15,gy:0.17},
+  {id:12,game:"USF",q:"Q1",t:"10:30",sc:"1-0",r:"SAVE",sh:"Shooter #TBD",st:"On the Run",fz:"8m Area",gz:"MID-R",sit:"EV",ast:false,astr:"",ra:"Sidearm",traj:"Flat",dn:"Difficult",gg:"A-",ox:62,oy:29,gx:0.8,gy:0.48},
+  {id:13,game:"USF",q:"Q1",t:"8:00",sc:"1-0",r:"WIDE",sh:"Shooter #TBD",st:"Time & Room",fz:"Outside Wing R",gz:"—",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"",dn:"Moderate",gg:"",ox:78,oy:41,gx:null,gy:null},
+  {id:14,game:"USF",q:"Q1",t:"5:45",sc:"1-0",r:"SAVE",sh:"Shooter #TBD",st:"Inside Finish",fz:"Crease",gz:"LOW-C",sit:"EV",ast:true,astr:"#TBD",ra:"Sidearm",traj:"Flat",dn:"High Danger",gg:"A",ox:49,oy:11,gx:0.53,gy:0.17},
+  {id:15,game:"USF",q:"Q1",t:"2:30",sc:"1-0",r:"GOAL",sh:"Shooter #TBD",st:"Dodge Finish",fz:"8m Area",gz:"TOP-L",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Rising",dn:"Difficult",gg:"C-",ox:53,oy:22,gx:0.2,gy:0.83},
+  {id:16,game:"USF",q:"Q2",t:"13:30",sc:"2-0",r:"SAVE",sh:"Shooter #TBD",st:"Time & Room",fz:"11m Hash R",gz:"MID-C",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:64,oy:32,gx:0.53,gy:0.51},
+  {id:17,game:"USF",q:"Q2",t:"11:00",sc:"2-1",r:"GOAL",sh:"Shooter #TBD",st:"Free Position",fz:"11m Hash L",gz:"LOW-R",sit:"FP",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"C",ox:31,oy:31,gx:0.82,gy:0.12},
+  {id:18,game:"USF",q:"Q2",t:"9:15",sc:"3-1",r:"SAVE",sh:"Shooter #TBD",st:"Quick Stick",fz:"Crease",gz:"MID-L",sit:"EV",ast:true,astr:"#TBD",ra:"Sidearm",traj:"Flat",dn:"High Danger",gg:"A",ox:53,oy:12,gx:0.15,gy:0.57},
+  {id:19,game:"USF",q:"Q2",t:"7:00",sc:"3-1",r:"WIDE",sh:"Shooter #TBD",st:"On the Run",fz:"Outside Wing L",gz:"—",sit:"EV",ast:false,astr:"",ra:"Sidearm",traj:"",dn:"Difficult",gg:"",ox:20,oy:43,gx:null,gy:null},
+  {id:20,game:"USF",q:"Q2",t:"4:30",sc:"3-1",r:"SAVE",sh:"Shooter #TBD",st:"Time & Room",fz:"8m Area",gz:"TOP-C",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Rising",dn:"Moderate",gg:"B+",ox:43,oy:25,gx:0.56,gy:0.87},
+  {id:21,game:"USF",q:"Q2",t:"1:45",sc:"3-1",r:"GOAL",sh:"Shooter #TBD",st:"Step-Down",fz:"8m Area",gz:"LOW-L",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Downward",dn:"Difficult",gg:"C-",ox:41,oy:21,gx:0.2,gy:0.15},
+  {id:22,game:"USF",q:"Q3",t:"14:00",sc:"4-2",r:"SAVE",sh:"Shooter #TBD",st:"Free Position",fz:"11m Hash L",gz:"MID-R",sit:"FP",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:33,oy:30,gx:0.73,gy:0.58},
+  {id:23,game:"USF",q:"Q3",t:"11:30",sc:"4-2",r:"GOAL",sh:"Shooter #TBD",st:"Inside Finish",fz:"Crease",gz:"TOP-R",sit:"EV",ast:true,astr:"#TBD",ra:"Overhand",traj:"Rising",dn:"High Danger",gg:"D",ox:51,oy:10,gx:0.76,gy:0.83},
+  {id:24,game:"USF",q:"Q3",t:"9:00",sc:"5-2",r:"SAVE",sh:"Shooter #TBD",st:"On the Run",fz:"8m Area",gz:"MID-L",sit:"EV",ast:false,astr:"",ra:"Sidearm",traj:"Flat",dn:"Difficult",gg:"A-",ox:53,oy:28,gx:0.18,gy:0.43},
+  {id:25,game:"USF",q:"Q3",t:"6:30",sc:"5-2",r:"WIDE",sh:"Shooter #TBD",st:"Time & Room",fz:"11m Hash R",gz:"—",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"",dn:"Moderate",gg:"",ox:64,oy:32,gx:null,gy:null},
+  {id:26,game:"USF",q:"Q3",t:"4:00",sc:"5-2",r:"SAVE",sh:"Shooter #TBD",st:"Dodge Finish",fz:"8m Area",gz:"LOW-R",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Difficult",gg:"A-",ox:51,oy:30,gx:0.83,gy:0.1},
+  {id:27,game:"USF",q:"Q3",t:"1:30",sc:"5-3",r:"GOAL",sh:"Shooter #TBD",st:"Quick Stick",fz:"Crease",gz:"MID-C",sit:"PP",ast:true,astr:"#TBD",ra:"Sidearm",traj:"Flat",dn:"High Danger",gg:"D",ox:52,oy:12,gx:0.45,gy:0.52},
+  {id:28,game:"USF",q:"Q4",t:"13:00",sc:"6-3",r:"SAVE",sh:"Shooter #TBD",st:"Time & Room",fz:"8m Area",gz:"TOP-L",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Rising",dn:"Moderate",gg:"B+",ox:41,oy:24,gx:0.18,gy:0.9},
+  {id:29,game:"USF",q:"Q4",t:"10:30",sc:"6-3",r:"GOAL",sh:"Shooter #TBD",st:"Free Position",fz:"11m Hash L",gz:"LOW-R",sit:"FP",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"C",ox:33,oy:29,gx:0.8,gy:0.12},
+  {id:30,game:"USF",q:"Q4",t:"8:00",sc:"7-3",r:"SAVE",sh:"Shooter #TBD",st:"On the Run",fz:"Outside Wing R",gz:"MID-R",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Difficult",gg:"A-",ox:81,oy:38,gx:0.78,gy:0.52},
+  {id:31,game:"USF",q:"Q4",t:"5:45",sc:"7-4",r:"GOAL",sh:"Shooter #TBD",st:"Inside Finish",fz:"Crease",gz:"LOW-L",sit:"EV",ast:true,astr:"#TBD",ra:"Sidearm",traj:"Flat",dn:"High Danger",gg:"D",ox:49,oy:13,gx:0.18,gy:0.18},
+  {id:32,game:"USF",q:"Q4",t:"3:30",sc:"8-4",r:"WIDE",sh:"Shooter #TBD",st:"Time & Room",fz:"8m Area",gz:"—",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"",dn:"Moderate",gg:"",ox:52,oy:25,gx:null,gy:null},
+  {id:33,game:"USF",q:"Q4",t:"2:00",sc:"8-4",r:"SAVE",sh:"Shooter #TBD",st:"Step-Down",fz:"8m Area",gz:"TOP-C",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Rising",dn:"Moderate",gg:"B+",ox:41,oy:24,gx:0.58,gy:0.88},
+  {id:34,game:"USF",q:"Q4",t:"0:45",sc:"8-4",r:"SAVE",sh:"Shooter #TBD",st:"On the Run",fz:"8m Area",gz:"MID-L",sit:"EV",ast:false,astr:"",ra:"Sidearm",traj:"Flat",dn:"Difficult",gg:"A-",ox:44,oy:22,gx:0.2,gy:0.43},
+  {id:35,game:"USF",q:"Q4",t:"0:15",sc:"8-4",r:"WIDE",sh:"Shooter #TBD",st:"Time & Room",fz:"Outside Wing L",gz:"—",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"",dn:"Easy",gg:"",ox:21,oy:44,gx:null,gy:null},
+  // ── EAST CAROLINA vs JMU (22 shots) ──
+  {id:36,game:"ECU",q:"Q1",t:"13:45",sc:"0-0",r:"SAVE",sh:"Shooter #TBD",st:"Free Position",fz:"8m Area",gz:"MID-C",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:61,oy:25,gx:0.43,gy:0.53},
+  {id:37,game:"ECU",q:"Q1",t:"13:20",sc:"0-0",r:"SAVE",sh:"Shooter #TBD",st:"Time & Room",fz:"11m Hash R",gz:"MID-R",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:69,oy:29,gx:0.76,gy:0.52},
+  {id:38,game:"ECU",q:"Q1",t:"12:55",sc:"0-0",r:"SAVE",sh:"Shooter #TBD",st:"Time & Room",fz:"8m Area",gz:"MID-C",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:61,oy:29,gx:0.55,gy:0.53},
+  {id:39,game:"ECU",q:"Q1",t:"11:30",sc:"0-0",r:"WIDE",sh:"Shooter #TBD",st:"On the Run",fz:"Outside Wing L",gz:"—",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"",dn:"Difficult",gg:"",ox:21,oy:41,gx:null,gy:null},
+  {id:40,game:"ECU",q:"Q1",t:"10:15",sc:"0-0",r:"WIDE",sh:"Shooter #TBD",st:"On the Run",fz:"Outside Wing R",gz:"—",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"",dn:"Difficult",gg:"",ox:79,oy:38,gx:null,gy:null},
+  {id:41,game:"ECU",q:"Q1",t:"9:45",sc:"0-0",r:"SAVE",sh:"Shooter #TBD",st:"Time & Room",fz:"8m Area",gz:"MID-L",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:60,oy:25,gx:0.16,gy:0.43},
+  {id:42,game:"ECU",q:"Q1",t:"8:30",sc:"0-0",r:"SAVE",sh:"Shooter #TBD",st:"Time & Room",fz:"11m Hash L",gz:"TOP-L",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Rising",dn:"Moderate",gg:"B+",ox:26,oy:30,gx:0.19,gy:0.82},
+  {id:43,game:"ECU",q:"Q1",t:"7:20",sc:"0-1",r:"GOAL",sh:"Shooter #TBD",st:"Quick Stick",fz:"Crease",gz:"LOW-C",sit:"EV",ast:true,astr:"#TBD",ra:"Overhand",traj:"Downward",dn:"High Danger",gg:"D",ox:52,oy:10,gx:0.43,gy:0.1},
+  {id:44,game:"ECU",q:"Q1",t:"6:10",sc:"0-1",r:"SAVE",sh:"Shooter #TBD",st:"Time & Room",fz:"11m Hash R",gz:"MID-R",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:61,oy:29,gx:0.78,gy:0.45},
+  {id:45,game:"ECU",q:"Q2",t:"11:45",sc:"0-1",r:"WIDE",sh:"Shooter #TBD",st:"On the Run",fz:"Outside Wing L",gz:"—",sit:"EV",ast:false,astr:"",ra:"Sidearm",traj:"",dn:"Difficult",gg:"",ox:15,oy:45,gx:null,gy:null},
+  {id:46,game:"ECU",q:"Q2",t:"10:20",sc:"0-1",r:"SAVE",sh:"Shooter #TBD",st:"Time & Room",fz:"8m Area",gz:"MID-C",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:52,oy:25,gx:0.56,gy:0.55},
+  {id:47,game:"ECU",q:"Q2",t:"9:15",sc:"0-2",r:"GOAL",sh:"Shooter #TBD",st:"Free Position",fz:"8m Area",gz:"MID-L",sit:"FP",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"C",ox:43,oy:21,gx:0.18,gy:0.49},
+  {id:48,game:"ECU",q:"Q2",t:"7:50",sc:"0-2",r:"SAVE",sh:"Shooter #TBD",st:"Time & Room",fz:"11m Hash L",gz:"TOP-L",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Rising",dn:"Moderate",gg:"B+",ox:30,oy:31,gx:0.19,gy:0.9},
+  {id:49,game:"ECU",q:"Q2",t:"6:30",sc:"0-2",r:"WIDE",sh:"Shooter #TBD",st:"On the Run",fz:"Outside Wing R",gz:"—",sit:"EV",ast:false,astr:"",ra:"Sidearm",traj:"",dn:"Difficult",gg:"",ox:75,oy:38,gx:null,gy:null},
+  {id:50,game:"ECU",q:"Q2",t:"5:00",sc:"1-2",r:"GOAL",sh:"Shooter #TBD",st:"Quick Stick",fz:"Crease",gz:"LOW-C",sit:"EV",ast:true,astr:"#TBD",ra:"Overhand",traj:"Downward",dn:"High Danger",gg:"D",ox:50,oy:13,gx:0.46,gy:0.12},
+  {id:51,game:"ECU",q:"Q2",t:"3:45",sc:"1-2",r:"SAVE",sh:"Shooter #TBD",st:"Time & Room",fz:"8m Area",gz:"MID-C",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:41,oy:22,gx:0.49,gy:0.56},
+  {id:52,game:"ECU",q:"Q3",t:"11:30",sc:"1-2",r:"SAVE",sh:"Shooter #TBD",st:"Time & Room",fz:"11m Hash R",gz:"TOP-R",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Rising",dn:"Moderate",gg:"B+",ox:61,oy:31,gx:0.83,gy:0.83},
+  {id:53,game:"ECU",q:"Q3",t:"9:50",sc:"1-3",r:"GOAL",sh:"Shooter #TBD",st:"Free Position",fz:"8m Area",gz:"MID-R",sit:"FP",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"C",ox:54,oy:25,gx:0.7,gy:0.43},
+  {id:54,game:"ECU",q:"Q3",t:"8:15",sc:"1-3",r:"SAVE",sh:"Shooter #TBD",st:"Time & Room",fz:"11m Hash L",gz:"MID-L",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:32,oy:29,gx:0.18,gy:0.5},
+  {id:55,game:"ECU",q:"Q3",t:"6:45",sc:"1-3",r:"SAVE",sh:"Shooter #TBD",st:"On the Run",fz:"Outside Wing R",gz:"TOP-R",sit:"EV",ast:false,astr:"",ra:"Sidearm",traj:"Rising",dn:"Difficult",gg:"A-",ox:81,oy:41,gx:0.77,gy:0.82},
+  {id:56,game:"ECU",q:"Q4",t:"10:20",sc:"1-4",r:"GOAL",sh:"Shooter #TBD",st:"Dodge Finish",fz:"8m Area",gz:"MID-C",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"C",ox:47,oy:29,gx:0.56,gy:0.47},
+  {id:57,game:"ECU",q:"Q4",t:"8:30",sc:"1-5",r:"GOAL",sh:"Shooter #TBD",st:"Quick Stick",fz:"Crease",gz:"LOW-C",sit:"EV",ast:true,astr:"#TBD",ra:"Overhand",traj:"Downward",dn:"High Danger",gg:"D",ox:52,oy:13,gx:0.55,gy:0.17},
+  // ── MARYLAND vs JMU (32 shots) ──
+  {id:58,game:"UMD",q:"Q1",t:"14:30",sc:"0-0",r:"SAVE",sh:"Shooter #TBD",st:"Time & Room",fz:"8m Area",gz:"MID-C",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:42,oy:23,gx:0.59,gy:0.51},
+  {id:59,game:"UMD",q:"Q1",t:"12:45",sc:"0-0",r:"SAVE",sh:"Shooter #TBD",st:"On the Run",fz:"8m Area",gz:"MID-L",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:51,oy:27,gx:0.15,gy:0.51},
+  {id:60,game:"UMD",q:"Q1",t:"10:30",sc:"0-0",r:"SAVE",sh:"Shooter #TBD",st:"Quick Stick",fz:"Crease",gz:"MID-C",sit:"EV",ast:true,astr:"#TBD",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:51,oy:13,gx:0.43,gy:0.57},
+  {id:61,game:"UMD",q:"Q1",t:"8:15",sc:"0-0",r:"GOAL",sh:"Shooter #TBD",st:"Inside Finish",fz:"Crease",gz:"LOW-L",sit:"EV",ast:true,astr:"#TBD",ra:"Overhand",traj:"Flat",dn:"High Danger",gg:"D",ox:48,oy:11,gx:0.19,gy:0.17},
+  {id:62,game:"UMD",q:"Q1",t:"5:00",sc:"1-0",r:"SAVE",sh:"Shooter #TBD",st:"Time & Room",fz:"8m Area",gz:"MID-R",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:48,oy:29,gx:0.77,gy:0.51},
+  {id:63,game:"UMD",q:"Q1",t:"2:30",sc:"1-0",r:"SAVE",sh:"Shooter #TBD",st:"On the Run",fz:"11m Hash R",gz:"MID-R",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:60,oy:28,gx:0.78,gy:0.51},
+  {id:64,game:"UMD",q:"Q1",t:"0:45",sc:"1-0",r:"WIDE",sh:"Shooter #TBD",st:"Time & Room",fz:"Outside Wing R",gz:"—",sit:"EV",ast:false,astr:"",ra:"Sidearm",traj:"",dn:"Moderate",gg:"",ox:77,oy:38,gx:null,gy:null},
+  {id:65,game:"UMD",q:"Q2",t:"14:00",sc:"1-0",r:"GOAL",sh:"Shooter #TBD",st:"Dodge Finish",fz:"8m Area",gz:"TOP-C",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Rising",dn:"Moderate",gg:"C",ox:54,oy:23,gx:0.46,gy:0.83},
+  {id:66,game:"UMD",q:"Q2",t:"12:00",sc:"2-0",r:"GOAL",sh:"Shooter #TBD",st:"Time & Room",fz:"8m Area",gz:"TOP-R",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Rising",dn:"Moderate",gg:"C",ox:53,oy:25,gx:0.83,gy:0.89},
+  {id:67,game:"UMD",q:"Q2",t:"10:15",sc:"3-0",r:"SAVE",sh:"Shooter #TBD",st:"On the Run",fz:"11m Hash L",gz:"TOP-L",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Rising",dn:"Difficult",gg:"A-",ox:26,oy:30,gx:0.19,gy:0.83},
+  {id:68,game:"UMD",q:"Q2",t:"8:00",sc:"3-0",r:"GOAL",sh:"Shooter #TBD",st:"Quick Stick",fz:"Crease",gz:"MID-C",sit:"EV",ast:true,astr:"#TBD",ra:"Overhand",traj:"Flat",dn:"High Danger",gg:"D",ox:51,oy:12,gx:0.43,gy:0.48},
+  {id:69,game:"UMD",q:"Q2",t:"6:00",sc:"4-0",r:"SAVE",sh:"Shooter #TBD",st:"Time & Room",fz:"11m Hash R",gz:"TOP-R",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Rising",dn:"Difficult",gg:"A-",ox:61,oy:29,gx:0.78,gy:0.86},
+  {id:70,game:"UMD",q:"Q2",t:"4:30",sc:"4-0",r:"GOAL",sh:"Shooter #TBD",st:"Dodge Finish",fz:"8m Area",gz:"MID-C",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"C",ox:51,oy:23,gx:0.6,gy:0.55},
+  {id:71,game:"UMD",q:"Q2",t:"2:00",sc:"5-0",r:"SAVE",sh:"Shooter #TBD",st:"On the Run",fz:"11m Hash L",gz:"MID-L",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:30,oy:31,gx:0.2,gy:0.57},
+  {id:72,game:"UMD",q:"Q2",t:"0:30",sc:"5-0",r:"WIDE",sh:"Shooter #TBD",st:"Time & Room",fz:"Outside Wing L",gz:"—",sit:"EV",ast:false,astr:"",ra:"Sidearm",traj:"",dn:"Moderate",gg:"",ox:15,oy:44,gx:null,gy:null},
+  {id:73,game:"UMD",q:"Q3",t:"14:00",sc:"5-0",r:"GOAL",sh:"Shooter #TBD",st:"Inside Finish",fz:"Crease",gz:"MID-C",sit:"EV",ast:true,astr:"#TBD",ra:"Overhand",traj:"Flat",dn:"High Danger",gg:"D",ox:50,oy:14,gx:0.55,gy:0.44},
+  {id:74,game:"UMD",q:"Q3",t:"12:00",sc:"6-0",r:"SAVE",sh:"Shooter #TBD",st:"On the Run",fz:"11m Hash R",gz:"TOP-R",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Rising",dn:"Difficult",gg:"A-",ox:63,oy:29,gx:0.79,gy:0.87},
+  {id:75,game:"UMD",q:"Q3",t:"10:15",sc:"6-0",r:"GOAL",sh:"Shooter #TBD",st:"Time & Room",fz:"8m Area",gz:"TOP-C",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Rising",dn:"Moderate",gg:"C",ox:58,oy:25,gx:0.46,gy:0.89},
+  {id:76,game:"UMD",q:"Q3",t:"8:00",sc:"7-0",r:"SAVE",sh:"Shooter #TBD",st:"Quick Stick",fz:"Crease",gz:"MID-C",sit:"EV",ast:true,astr:"#TBD",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:48,oy:13,gx:0.57,gy:0.43},
+  {id:77,game:"UMD",q:"Q3",t:"6:00",sc:"7-0",r:"GOAL",sh:"Shooter #TBD",st:"Dodge Finish",fz:"8m Area",gz:"MID-R",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"C",ox:46,oy:21,gx:0.82,gy:0.45},
+  {id:78,game:"UMD",q:"Q3",t:"4:30",sc:"8-0",r:"GOAL",sh:"Shooter #TBD",st:"Time & Room",fz:"8m Area",gz:"MID-C",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"C",ox:49,oy:27,gx:0.51,gy:0.44},
+  {id:79,game:"UMD",q:"Q3",t:"2:00",sc:"9-0",r:"SAVE",sh:"Shooter #TBD",st:"On the Run",fz:"11m Hash L",gz:"TOP-L",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Rising",dn:"Difficult",gg:"A-",ox:34,oy:31,gx:0.15,gy:0.82},
+  {id:80,game:"UMD",q:"Q3",t:"0:30",sc:"9-0",r:"WIDE",sh:"Shooter #TBD",st:"Time & Room",fz:"Outside Wing R",gz:"—",sit:"EV",ast:false,astr:"",ra:"Sidearm",traj:"",dn:"Moderate",gg:"",ox:77,oy:39,gx:null,gy:null},
+  {id:81,game:"UMD",q:"Q4",t:"14:00",sc:"9-0",r:"GOAL",sh:"Shooter #TBD",st:"Inside Finish",fz:"Crease",gz:"MID-C",sit:"EV",ast:true,astr:"#TBD",ra:"Overhand",traj:"Flat",dn:"High Danger",gg:"D",ox:51,oy:10,gx:0.47,gy:0.57},
+  {id:82,game:"UMD",q:"Q4",t:"12:00",sc:"10-0",r:"GOAL",sh:"Shooter #TBD",st:"Quick Stick",fz:"Crease",gz:"MID-C",sit:"EV",ast:true,astr:"#TBD",ra:"Overhand",traj:"Flat",dn:"High Danger",gg:"D",ox:54,oy:10,gx:0.47,gy:0.53},
+  {id:83,game:"UMD",q:"Q4",t:"10:15",sc:"11-0",r:"SAVE",sh:"Shooter #TBD",st:"Time & Room",fz:"8m Area",gz:"MID-R",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:54,oy:24,gx:0.77,gy:0.56},
+  {id:84,game:"UMD",q:"Q4",t:"8:00",sc:"11-0",r:"GOAL",sh:"Shooter #TBD",st:"Dodge Finish",fz:"8m Area",gz:"TOP-C",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Rising",dn:"Moderate",gg:"C",ox:61,oy:27,gx:0.57,gy:0.84},
+  {id:85,game:"UMD",q:"Q4",t:"6:00",sc:"12-0",r:"SAVE",sh:"Shooter #TBD",st:"On the Run",fz:"11m Hash R",gz:"MID-R",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:62,oy:31,gx:0.72,gy:0.49},
+  {id:86,game:"UMD",q:"Q4",t:"4:30",sc:"12-0",r:"GOAL",sh:"Shooter #TBD",st:"Time & Room",fz:"8m Area",gz:"TOP-R",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Rising",dn:"Moderate",gg:"C",ox:42,oy:29,gx:0.82,gy:0.85},
+  {id:87,game:"UMD",q:"Q4",t:"2:00",sc:"13-0",r:"SAVE",sh:"Shooter #TBD",st:"Quick Stick",fz:"Crease",gz:"MID-C",sit:"EV",ast:true,astr:"#TBD",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:52,oy:13,gx:0.45,gy:0.45},
+  {id:88,game:"UMD",q:"Q4",t:"0:45",sc:"13-0",r:"GOAL",sh:"Shooter #TBD",st:"Inside Finish",fz:"Crease",gz:"MID-C",sit:"EV",ast:true,astr:"#TBD",ra:"Overhand",traj:"Flat",dn:"High Danger",gg:"D",ox:52,oy:12,gx:0.41,gy:0.5},
+  {id:89,game:"UMD",q:"Q4",t:"0:15",sc:"14-0",r:"GOAL",sh:"Shooter #TBD",st:"Time & Room",fz:"8m Area",gz:"MID-L",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"C",ox:43,oy:29,gx:0.17,gy:0.55},
+  // ── JOHNS HOPKINS vs JMU (20 shots) ──
+  {id:90,game:"JHU",q:"Q1",t:"14:00",sc:"0-0",r:"SAVE",sh:"Shooter #TBD",st:"Time & Room",fz:"8m Area",gz:"MID-L",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:59,oy:22,gx:0.21,gy:0.48},
+  {id:91,game:"JHU",q:"Q1",t:"11:30",sc:"0-0",r:"GOAL",sh:"Shooter #TBD",st:"Time & Room",fz:"8m Area",gz:"TOP-L",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Rising",dn:"Moderate",gg:"C",ox:45,oy:21,gx:0.2,gy:0.85},
+  {id:92,game:"JHU",q:"Q1",t:"8:45",sc:"1-0",r:"SAVE",sh:"Shooter #TBD",st:"On the Run",fz:"11m Hash L",gz:"MID-C",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:30,oy:31,gx:0.57,gy:0.47},
+  {id:93,game:"JHU",q:"Q1",t:"5:00",sc:"1-0",r:"WIDE",sh:"Shooter #TBD",st:"Quick Stick",fz:"Crease",gz:"—",sit:"EV",ast:true,astr:"#TBD",ra:"Sidearm",traj:"",dn:"Difficult",gg:"",ox:48,oy:14,gx:null,gy:null},
+  {id:94,game:"JHU",q:"Q1",t:"3:30",sc:"1-0",r:"SAVE",sh:"Shooter #TBD",st:"Inside Finish",fz:"8m Area",gz:"MID-R",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:44,oy:26,gx:0.82,gy:0.43},
+  {id:95,game:"JHU",q:"Q1",t:"1:00",sc:"1-0",r:"GOAL",sh:"Shooter #TBD",st:"Time & Room",fz:"Outside Wing L",gz:"TOP-C",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Rising",dn:"Moderate",gg:"C",ox:20,oy:40,gx:0.55,gy:0.85},
+  {id:96,game:"JHU",q:"Q2",t:"14:00",sc:"2-0",r:"SAVE",sh:"Shooter #TBD",st:"Time & Room",fz:"11m Hash R",gz:"MID-L",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:70,oy:28,gx:0.23,gy:0.45},
+  {id:97,game:"JHU",q:"Q2",t:"12:00",sc:"2-0",r:"GOAL",sh:"Shooter #TBD",st:"Inside Finish",fz:"Crease",gz:"TOP-C",sit:"EV",ast:true,astr:"#TBD",ra:"Overhand",traj:"Rising",dn:"High Danger",gg:"D",ox:48,oy:12,gx:0.5,gy:0.88},
+  {id:98,game:"JHU",q:"Q2",t:"10:30",sc:"3-0",r:"SAVE",sh:"Shooter #TBD",st:"On the Run",fz:"11m Hash L",gz:"MID-L",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Difficult",gg:"A-",ox:31,oy:32,gx:0.21,gy:0.45},
+  {id:99,game:"JHU",q:"Q2",t:"9:00",sc:"3-0",r:"GOAL",sh:"Shooter #TBD",st:"Time & Room",fz:"8m Area",gz:"TOP-L",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Rising",dn:"Moderate",gg:"C",ox:48,oy:29,gx:0.21,gy:0.87},
+  {id:100,game:"JHU",q:"Q2",t:"7:30",sc:"4-0",r:"SAVE",sh:"Shooter #TBD",st:"Quick Stick",fz:"Crease",gz:"MID-C",sit:"EV",ast:true,astr:"#TBD",ra:"Sidearm",traj:"Flat",dn:"Difficult",gg:"A-",ox:52,oy:10,gx:0.58,gy:0.5},
+  {id:101,game:"JHU",q:"Q2",t:"6:00",sc:"4-0",r:"SAVE",sh:"Shooter #TBD",st:"Inside Finish",fz:"8m Area",gz:"MID-L",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:54,oy:23,gx:0.21,gy:0.51},
+  {id:102,game:"JHU",q:"Q2",t:"4:30",sc:"4-0",r:"GOAL",sh:"Shooter #TBD",st:"Time & Room",fz:"Outside Wing R",gz:"TOP-R",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Rising",dn:"Moderate",gg:"C",ox:76,oy:40,gx:0.79,gy:0.88},
+  {id:103,game:"JHU",q:"Q2",t:"3:00",sc:"5-0",r:"SAVE",sh:"Shooter #TBD",st:"On the Run",fz:"11m Hash R",gz:"MID-R",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Difficult",gg:"A-",ox:62,oy:30,gx:0.75,gy:0.55},
+  {id:104,game:"JHU",q:"Q2",t:"1:30",sc:"5-0",r:"GOAL",sh:"Shooter #TBD",st:"Inside Finish",fz:"Crease",gz:"TOP-C",sit:"EV",ast:true,astr:"#TBD",ra:"Underhand",traj:"Flat",dn:"High Danger",gg:"D",ox:50,oy:11,gx:0.55,gy:0.87},
+  {id:105,game:"JHU",q:"Q3",t:"14:00",sc:"6-0",r:"WIDE",sh:"Shooter #TBD",st:"Dodge Finish",fz:"8m Area",gz:"—",sit:"EV",ast:false,astr:"",ra:"Sidearm",traj:"",dn:"Difficult",gg:"",ox:46,oy:24,gx:null,gy:null},
+  {id:106,game:"JHU",q:"Q3",t:"12:00",sc:"6-0",r:"SAVE",sh:"Shooter #TBD",st:"On the Run",fz:"11m Hash L",gz:"MID-L",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:31,oy:30,gx:0.22,gy:0.57},
+  {id:107,game:"JHU",q:"Q3",t:"10:00",sc:"6-0",r:"GOAL",sh:"Shooter #TBD",st:"Free Position",fz:"11m Hash L",gz:"TOP-L",sit:"FP",ast:false,astr:"",ra:"Overhand",traj:"Rising",dn:"Moderate",gg:"C",ox:32,oy:31,gx:0.16,gy:0.87},
+  {id:108,game:"JHU",q:"Q3",t:"8:00",sc:"7-0",r:"SAVE",sh:"Shooter #TBD",st:"Time & Room",fz:"8m Area",gz:"MID-C",sit:"EV",ast:false,astr:"",ra:"Overhand",traj:"Flat",dn:"Moderate",gg:"B+",ox:53,oy:21,gx:0.59,gy:0.46},
+  {id:109,game:"JHU",q:"Q4",t:"6:30",sc:"7-0",r:"GOAL",sh:"Shooter #TBD",st:"Inside Finish",fz:"Crease",gz:"TOP-C",sit:"EV",ast:true,astr:"#TBD",ra:"Overhand",traj:"Rising",dn:"High Danger",gg:"D",ox:50,oy:13,gx:0.44,gy:0.82}
+];
+
+const GMETA = {
+  ALL:{date:"2026 Season",venue:"5 Games",clips:109,record:"Season Data",sl:"All Opponents",sr:"vs JMU",lbl:"All 5 Games Combined"},
+  LIB:{date:"2026 Season",venue:"Liberty vs JMU",clips:9,record:"9 shots",sl:"LIB",sr:"JMU",lbl:"Liberty vs JMU"},
+  USF:{date:"2026 Season",venue:"USF vs JMU",clips:26,record:"26 shots",sl:"USF",sr:"JMU",lbl:"USF vs JMU"},
+  ECU:{date:"2026 Season",venue:"ECU vs JMU",clips:22,record:"22 shots",sl:"ECU",sr:"JMU",lbl:"East Carolina vs JMU"},
+  UMD:{date:"2026 Season",venue:"Maryland vs JMU",clips:32,record:"32 shots",sl:"UMD",sr:"JMU",lbl:"Maryland vs JMU"},
+  JHU:{date:"2026 Season",venue:"JHU vs JMU",clips:20,record:"20 shots",sl:"JHU",sr:"JMU",lbl:"Johns Hopkins vs JMU"}
+};
+const GFULL = {LIB:"Liberty",USF:"USF",ECU:"East Carolina",UMD:"Maryland",JHU:"Johns Hopkins"};
+
+// ═══════════════════════════════════════════════════════ STATE
+let ST = {game:"ALL",result:"ALL",sit:"ALL",zone:"ALL"};
+let selRow = null;
+let selShot = null;
+const CH = {};
+
+// ═══════════════════════════════════════════════════════ FILTER
+function filt(){
+  return SHOTS.filter(function(s){
+    if(ST.game!=="ALL"&&s.game!==ST.game) return false;
+    if(ST.result!=="ALL"){
+      var wides=["WIDE","HIGH","BLOCKED"];
+      if(ST.result==="WIDE"&&!wides.includes(s.r)) return false;
+      if(ST.result!=="WIDE"&&s.r!==ST.result) return false;
+    }
+    if(ST.sit!=="ALL"&&s.sit!==ST.sit) return false;
+    if(ST.zone!=="ALL"){
+      if(ST.zone==="Crease"&&s.fz!=="Crease") return false;
+      if(ST.zone==="11m"&&s.fz.indexOf("11m")===-1&&s.fz.indexOf("8m")===-1&&s.fz!=="Center 8m") return false;
+      if(ST.zone==="Outside"&&s.fz.indexOf("Outside")===-1&&s.fz.indexOf("Wing")===-1) return false;
+    }
+    return true;
+  });
+}
+function filtViz(){return selShot?[selShot]:filt();}
+function savePct(arr){
+  var on=arr.filter(function(s){return s.r==="GOAL"||s.r==="SAVE";});
+  if(!on.length) return null;
+  return on.filter(function(s){return s.r==="SAVE";}).length/on.length*100;
+}
+
+// ═══════════════════════════════════════════════════════ HEADER
+function updHdr(){
+  var m=GMETA[ST.game];
+  document.getElementById("hb-date").textContent=m.date;
+  document.getElementById("hb-venue").textContent=m.venue;
+  document.getElementById("hb-clips").textContent=m.clips+" clips";
+  document.getElementById("hb-rec").textContent=m.record;
+  document.getElementById("sc-l").textContent=m.sl;
+  document.getElementById("sc-r").textContent=m.sr;
+  document.getElementById("sc-lbl").textContent=m.lbl;
+}
+
+// ═══════════════════════════════════════════════════════ KPI
+function updKPI(){
+  var s=filt();
+  var g=s.filter(function(x){return x.r==="GOAL";});
+  var sv=s.filter(function(x){return x.r==="SAVE";});
+  var on=g.length+sv.length;
+  var pct=on>0?sv.length/on*100:0;
+  function spct(fn){return savePct(s.filter(fn));}
+  var fp=spct(function(x){return x.sit==="FP";});
+  var cr=spct(function(x){return x.fz==="Crease";});
+  var ev=spct(function(x){return x.sit==="EV";});
+  var hd=spct(function(x){return x.dn==="High Danger";});
+  var late=spct(function(x){var t=x.t.replace("~","").split(":");return parseInt(t[0],10)<=3;});
+  var ppga=s.filter(function(x){return x.sit==="PP"&&x.r==="GOAL";}).length;
+  function fmt(v){return v!==null?v.toFixed(1)+"%":"\u2014";}
+  function setEl(id,v,cls){var el=document.getElementById(id);if(!el)return;el.textContent=v;if(cls)el.className="kv "+cls;}
+  setEl("k-sh",s.length);
+  setEl("k-sv",sv.length);
+  setEl("k-ga",g.length);
+  setEl("k-sp",pct.toFixed(1)+"%",pct>=55?"pos":pct>=40?"neu":"neg");
+  setEl("k-fp",fmt(fp),fp!==null?(fp>=50?"pos":"neg"):"");
+  setEl("k-cr",fmt(cr),cr!==null?(cr>=40?"neu":"neg"):"");
+  setEl("k-ev",fmt(ev),ev!==null?(ev>=60?"pos":ev>=45?"neu":"neg"):"");
+  setEl("k-pp",ppga);
+  setEl("k-hd",fmt(hd),hd!==null?(hd>=40?"neu":"neg"):"");
+  setEl("k-lt",fmt(late));
+}
+
+// ═══════════════════════════════════════════════════════ FIELD MAP
+function renderField(){
+  var g=document.getElementById("fdots");g.innerHTML="";
+  var shots=filtViz();var isSingle=selShot!==null;
+  shots.forEach(function(s){
+    if(!s.ox||!s.oy)return;
+    var x=20+(s.ox/100)*360,y=20+(s.oy/100)*270;
+    var col=s.r==="GOAL"?"#ef4444":s.r==="SAVE"?"#22c55e":"#94a3b8";
+    var op=(s.r==="WIDE"||s.r==="HIGH"||s.r==="BLOCKED")?"0.45":"0.82";
+    var r=isSingle?8:(s.r==="GOAL"?5.5:s.r==="SAVE"?4.5:3.5);
+    if(isSingle){var ring=document.createElementNS("http://www.w3.org/2000/svg","circle");ring.setAttribute("cx",x.toFixed(1));ring.setAttribute("cy",y.toFixed(1));ring.setAttribute("r","14");ring.setAttribute("fill","none");ring.setAttribute("stroke",col);ring.setAttribute("stroke-width","2.5");ring.setAttribute("opacity","0.5");g.appendChild(ring);}
+    var c=document.createElementNS("http://www.w3.org/2000/svg","circle");
+    c.setAttribute("cx",x.toFixed(1));c.setAttribute("cy",y.toFixed(1));c.setAttribute("r",r);c.setAttribute("fill",col);c.setAttribute("opacity",isSingle?"1":op);c.setAttribute("stroke","#fff");c.setAttribute("stroke-width",isSingle?"2":"0.5");c.style.cursor="pointer";
+    c.addEventListener("click",(function(shot){return function(e){e.stopPropagation();selectShot(shot);};})(s));
+    g.appendChild(c);
+    // invisible larger hit area for small dots with tooltip
+    if(!isSingle){var hit=document.createElementNS("http://www.w3.org/2000/svg","circle");hit.setAttribute("cx",x.toFixed(1));hit.setAttribute("cy",y.toFixed(1));hit.setAttribute("r","10");hit.setAttribute("fill","transparent");hit.style.cursor="pointer";hit.addEventListener("click",(function(shot){return function(e){e.stopPropagation();selectShot(shot);};})(s));hit.addEventListener("mouseenter",(function(shot){return function(e){showTip(shot,e);};})(s));hit.addEventListener("mousemove",moveTip);hit.addEventListener("mouseleave",hideTip);g.appendChild(hit);}
+    else{c.addEventListener("mouseenter",(function(shot){return function(e){showTip(shot,e);};})(s));c.addEventListener("mousemove",moveTip);c.addEventListener("mouseleave",hideTip);}
+  });
+}
+
+// ═══════════════════════════════════════════════════════ HEATMAPS
+function renderHeatmaps(){
+  var s=filtViz().filter(function(x){return x.gz&&x.gz!=="\u2014";});
+  var zones=["TOP-L","TOP-C","TOP-R","MID-L","MID-C","MID-R","LOW-L","LOW-C","LOW-R"];
+  var gc={},sc={};zones.forEach(function(z){gc[z]=0;sc[z]=0;});
+  s.forEach(function(x){if(zones.indexOf(x.gz)>=0){if(x.r==="GOAL")gc[x.gz]++;else if(x.r==="SAVE")sc[x.gz]++;}});
+  var maxG=Math.max.apply(null,[1].concat(zones.map(function(z){return gc[z];})));
+  var maxS=Math.max.apply(null,[1].concat(zones.map(function(z){return sc[z];})));
+  function buildGrid(elId,counts,maxC,isGoal){
+    var el=document.getElementById(elId);if(!el)return;el.innerHTML="";
+    zones.forEach(function(z){
+      var n=counts[z],int=n/maxC,alpha=0.07+int*0.72;
+      var bg=isGoal?"rgba(239,68,68,"+alpha+")":"rgba(34,197,94,"+alpha+")";
+      var col=n>0?(isGoal?"#ef4444":"#16a34a"):"rgba(0,0,0,0.2)";
+      var d=document.createElement("div");d.className="gcell";d.style.background=bg;
+      var inner=document.createElement("div");inner.className="gcn";inner.style.color=col;inner.textContent=n;
+      d.appendChild(inner);el.appendChild(d);
+    });
+  }
+  buildGrid("gz-g",gc,maxG,true);buildGrid("gz-s",sc,maxS,false);
+  var el=document.getElementById("gz-p");if(!el)return;el.innerHTML="";
+  zones.forEach(function(z){
+    var tot=gc[z]+sc[z],pct=tot>0?sc[z]/tot:null,str=tot>0?Math.round(pct*100)+"%":"\u2014";
+    var alpha=pct!==null?0.05+pct*0.55:0.03,bg="rgba(35,45,75,"+alpha+")";
+    var col=pct===null?"#ccc":(pct>=0.5?"#166534":"#991b1b");
+    var d=document.createElement("div");d.className="gcell";d.style.background=bg;
+    var inner=document.createElement("div");inner.className="gcn";inner.style.cssText="font-size:15px;color:"+col;inner.textContent=str;d.appendChild(inner);
+    if(tot>0){var sub=document.createElement("div");sub.className="gcp";sub.style.color=col;sub.textContent=tot+" shots";d.appendChild(sub);}
+    el.appendChild(d);
+  });
+}
+
+// ═══════════════════════════════════════════════════════ SCATTER
+function renderScatter(){
+  var g=document.getElementById("sdots");g.innerHTML="";var isSingle=selShot!==null;
+  filtViz().filter(function(s){return s.gx!==null&&s.gy!==null;}).forEach(function(s){
+    var x=30+s.gx*220,y=140-s.gy*128;var col=s.r==="GOAL"?"#ef4444":"#22c55e";
+    if(isSingle){var ring=document.createElementNS("http://www.w3.org/2000/svg","circle");ring.setAttribute("cx",x.toFixed(1));ring.setAttribute("cy",y.toFixed(1));ring.setAttribute("r","11");ring.setAttribute("fill","none");ring.setAttribute("stroke",col);ring.setAttribute("stroke-width","2");ring.setAttribute("opacity","0.45");g.appendChild(ring);}
+    var c=document.createElementNS("http://www.w3.org/2000/svg","circle");c.setAttribute("cx",x.toFixed(1));c.setAttribute("cy",y.toFixed(1));c.setAttribute("r",isSingle?7:(s.r==="GOAL"?5:4));c.setAttribute("fill",col);c.setAttribute("opacity",isSingle?"1":"0.78");c.setAttribute("stroke","rgba(255,255,255,0.8)");c.setAttribute("stroke-width",isSingle?"2":"0.8");c.style.cursor="pointer";
+    c.addEventListener("click",(function(shot){return function(e){e.stopPropagation();selectShot(shot);};})(s));
+    g.appendChild(c);
+    if(!isSingle){var hit=document.createElementNS("http://www.w3.org/2000/svg","circle");hit.setAttribute("cx",x.toFixed(1));hit.setAttribute("cy",y.toFixed(1));hit.setAttribute("r","10");hit.setAttribute("fill","transparent");hit.style.cursor="pointer";hit.addEventListener("click",(function(shot){return function(e){e.stopPropagation();selectShot(shot);};})(s));hit.addEventListener("mouseenter",(function(shot){return function(e){showTip(shot,e);};})(s));hit.addEventListener("mousemove",moveTip);hit.addEventListener("mouseleave",hideTip);g.appendChild(hit);}
+    else{c.addEventListener("mouseenter",(function(shot){return function(e){showTip(shot,e);};})(s));c.addEventListener("mousemove",moveTip);c.addEventListener("mouseleave",hideTip);}
+  });
+}
+
+// ═══════════════════════════════════════════════════════ SHOT TABLE
+var DIFF_STYLE={"High Danger":"background:#fee2e2;color:#991b1b","Difficult":"background:#fef3c7;color:#92400e","Moderate":"background:#f0f4ff;color:#1e40af","Easy":"background:#f0fdf4;color:#166534"};
+function renderTable(){
+  var shots=filt();var cnt=document.getElementById("scnt");if(cnt)cnt.textContent=shots.length+" shots";
+  var tb=document.getElementById("stb");tb.innerHTML="";
+  shots.forEach(function(s){
+    var tr=document.createElement("tr");var rb=(s.r==="WIDE"||s.r==="HIGH"||s.r==="BLOCKED")?"WIDE":s.r;
+    var sitHtml="";if(s.sit==="FP")sitHtml+='<span class="badge bFP">FP</span> ';if(s.sit==="PP")sitHtml+='<span class="badge bPP">PP</span> ';sitHtml+='<span class="badge bEV">'+s.sit+'</span>';
+    var gzCol=s.gz==="\u2014"?"var(--muted)":(s.r==="GOAL"?"#dc2626":"#16a34a");
+    tr.innerHTML='<td><span style="font-family:JetBrains Mono,monospace;font-size:10px;color:var(--muted)">'+s.id+'</span></td><td><span class="bgm">'+s.game+'</span></td><td style="font-weight:600;color:var(--navy)">'+s.q+'</td><td style="font-family:JetBrains Mono,monospace;font-size:11px">'+s.t+'</td><td style="font-size:11px;color:var(--muted)">'+s.sc+'</td><td><span class="badge b'+rb+'">'+s.r+'</span></td><td style="font-weight:600">'+s.sh+'</td><td style="font-size:11px">'+s.fz+'</td><td>'+sitHtml+'</td><td style="font-family:JetBrains Mono,monospace;font-size:11px;color:'+gzCol+'">'+s.gz+'</td><td><span class="badge" style="'+(DIFF_STYLE[s.dn]||"")+'">'+s.dn+'</span></td>';
+    tr.addEventListener("click",(function(shot,row){return function(){showDetail(shot,row);};})(s,tr));tb.appendChild(tr);
+  });
+}
+function showDetail(s,tr){
+  if(selRow)selRow.classList.remove("sel");selRow=tr;tr.classList.add("sel");
+  var p=document.getElementById("dp");p.style.display="block";
+  var gameName=GFULL[s.game]||s.game;
+  document.getElementById("dp-t").textContent="Shot #"+s.id+" \u00b7 "+gameName+" \u00b7 "+s.q+" "+s.t;
+  var rb=(s.r==="HIGH"||s.r==="BLOCKED")?"WIDE":s.r;var b=document.getElementById("dp-b");b.className="badge b"+rb;b.textContent=s.r;
+  var items=[{l:"Shooter",v:s.sh},{l:"Game",v:gameName+" ("+s.q+" / "+s.t+")"},{l:"Score",v:s.sc},{l:"Result",v:s.r},{l:"Origin Zone",v:s.fz},{l:"Shot Type",v:s.st||"\u2014"},{l:"Release",v:s.ra||"\u2014"},{l:"Situation",v:s.sit+(s.ast?" (assist: "+s.astr+")":"")},{l:"Goal Zone",v:s.gz},{l:"Trajectory",v:s.traj||"\u2014"},{l:"Difficulty",v:s.dn||"\u2014"},{l:"GK Grade",v:s.gg||"\u2014"}];
+  var g=document.getElementById("dp-g");g.innerHTML=items.map(function(i){return '<div class="dpi"><div class="dpl">'+i.l+'</div><div class="dpv">'+i.v+'</div></div>';}).join("");
+  p.scrollIntoView({behavior:"smooth",block:"nearest"});
+  selShot=s;renderField();renderHeatmaps();renderScatter();
+}
+
+// ═══════════════════════════════════════════════════════ TOOLTIP
+var tipEl=document.getElementById("shot-tip");
+function showTip(s,e){
+  var rb=s.r==="GOAL"?"#ef4444":s.r==="SAVE"?"#22c55e":"#94a3b8";
+  tipEl.innerHTML='<span style="color:'+rb+';font-weight:700">'+s.r+'</span> &middot; #'+s.id+' '+s.game+' '+s.q+' '+s.t+'<br>'+s.st+' &middot; '+s.fz+(s.gz&&s.gz!=="\u2014"?' &rarr; '+s.gz:'');
+  tipEl.style.display="block";
+  tipEl.style.left=(e.clientX+14)+"px";
+  tipEl.style.top=(e.clientY-10)+"px";
+}
+function hideTip(){tipEl.style.display="none";}
+function moveTip(e){tipEl.style.left=(e.clientX+14)+"px";tipEl.style.top=(e.clientY-10)+"px";}
+
+// ═══════════════════════════════════════════════════════ SELECT SHOT (from any viz)
+function selectShot(shot){
+  // find the matching table row by shot id
+  var tb=document.getElementById("stb");
+  var rows=tb?tb.querySelectorAll("tr"):[];
+  var matchRow=null;
+  rows.forEach(function(row){
+    var idCell=row.querySelector("td:first-child span");
+    if(idCell&&parseInt(idCell.textContent,10)===shot.id){matchRow=row;}
+  });
+  // show detail panel same as table click
+  showDetail(shot,matchRow||document.createElement("tr"));
+  // scroll the matched row into view and highlight
+  if(matchRow){matchRow.scrollIntoView({behavior:"smooth",block:"center"});}
+}
+
+// ═══════════════════════════════════════════════════════ CHART HELPERS
+function dk(id){if(CH[id]){CH[id].destroy();delete CH[id];}}
+var BARFONT={family:"Barlow Condensed",size:11};
+function makeBarSavePct(canvasId,labels,groupFn){
+  var shots=filt().filter(function(s){return s.r==="GOAL"||s.r==="SAVE";});
+  var data=labels.map(function(l){var grp=shots.filter(function(s){return groupFn(s)===l;});return grp.length>0?grp.filter(function(s){return s.r==="SAVE";}).length/grp.length*100:0;});
+  var counts=labels.map(function(l){return shots.filter(function(s){return groupFn(s)===l;}).length;});
+  dk(canvasId);var ctx=document.getElementById(canvasId);if(!ctx)return;
+  CH[canvasId]=new Chart(ctx.getContext("2d"),{type:"bar",data:{labels:labels,datasets:[{data:data,backgroundColor:data.map(function(v){return v>=50?"#22c55e":"#ef4444";}),borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:"y",plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.raw.toFixed(1)+"% ("+counts[c.dataIndex]+" shots)";}}}},scales:{x:{beginAtZero:true,max:100,ticks:{callback:function(v){return v+"%";},font:{size:9}},grid:{color:"rgba(0,0,0,.05)"}},y:{ticks:{font:{size:9,family:"Barlow Condensed"}}}}}});
+}
+
+// ═══════════════════════════════════════════════════════ TAB 2
+function renderDonut(){
+  var shots=filt();var goals=shots.filter(function(s){return s.r==="GOAL";});var total=Math.max(1,goals.length);
+  var cats={"Free Position":goals.filter(function(s){return s.sit==="FP";}).length,"Man-Up (PP)":goals.filter(function(s){return s.sit==="PP";}).length,"Crease Attack":goals.filter(function(s){return s.fz==="Crease"&&s.sit==="EV";}).length,"Assisted EV":goals.filter(function(s){return s.ast&&s.sit==="EV"&&s.fz!=="Crease";}).length,"Unassisted EV":goals.filter(function(s){return !s.ast&&s.sit==="EV"&&s.fz!=="Crease";}).length};
+  dk("c-donut");var ctx=document.getElementById("c-donut");if(!ctx)return;
+  var cols=["#8b5cf6","#f59e0b","#ef4444","#3b82f6","#10b981"];
+  CH["c-donut"]=new Chart(ctx.getContext("2d"),{type:"doughnut",data:{labels:Object.keys(cats),datasets:[{data:Object.values(cats),backgroundColor:cols,borderWidth:2,borderColor:"#fff"}]},options:{responsive:true,maintainAspectRatio:true,cutout:"65%",plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.raw+" GA ("+(c.raw/total*100).toFixed(0)+"%)";}}}}}});
+  var tb=document.querySelector("#t-root tbody");tb.innerHTML="";
+  Object.entries(cats).forEach(function(entry,i){var l=entry[0],n=entry[1];var tr=document.createElement("tr");tr.innerHTML='<td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+cols[i]+';margin-right:6px"></span>'+l+'</td><td>'+n+'</td><td>'+(n/total*100).toFixed(0)+'%</td>';tb.appendChild(tr);});
+}
+
+function renderXSave(){
+  var shots=filt().filter(function(s){return s.r==="GOAL"||s.r==="SAVE";});var diffs=["Easy","Moderate","Difficult","High Danger"];
+  var svData=diffs.map(function(d){var ds=shots.filter(function(s){return s.dn===d;});return{sv:ds.filter(function(s){return s.r==="SAVE";}).length,g:ds.filter(function(s){return s.r==="GOAL";}).length};});
+  dk("c-xsave");var ctx=document.getElementById("c-xsave");if(!ctx)return;
+  CH["c-xsave"]=new Chart(ctx.getContext("2d"),{type:"bar",data:{labels:diffs,datasets:[{label:"Saves",data:svData.map(function(d){return d.sv;}),backgroundColor:"#22c55e",borderRadius:4,stack:"a"},{label:"Goals",data:svData.map(function(d){return d.g;}),backgroundColor:"#ef4444",borderRadius:4,stack:"a"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:BARFONT}}},scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,beginAtZero:true,grid:{color:"rgba(0,0,0,.05)"}}}}});
+}
+
+function renderQTable(){
+  var shots=filt();var tb=document.querySelector("#t-q tbody");tb.innerHTML="";
+  ["Q1","Q2","Q3","Q4"].forEach(function(q){
+    var qs=shots.filter(function(s){return s.q===q;});var g=qs.filter(function(s){return s.r==="GOAL";}).length;var sv=qs.filter(function(s){return s.r==="SAVE";}).length;var ot=qs.length-g-sv;var pct=(g+sv)>0?(sv/(g+sv)*100).toFixed(1)+"%":"\u2014";
+    var tr=document.createElement("tr");tr.innerHTML='<td><strong>'+q+'</strong></td><td>'+qs.length+'</td><td style="color:#ef4444">'+g+'</td><td style="color:#22c55e">'+sv+'</td><td style="color:var(--muted)">'+ot+'</td><td><strong>'+pct+'</strong></td>';tb.appendChild(tr);
+  });
+  var g=shots.filter(function(s){return s.r==="GOAL";}).length;var sv=shots.filter(function(s){return s.r==="SAVE";}).length;var ot=shots.length-g-sv;var pct=(g+sv)>0?(sv/(g+sv)*100).toFixed(1)+"%":"\u2014";
+  var tr=document.createElement("tr");tr.style.cssText="background:#f8f9fc;font-weight:700";tr.innerHTML='<td>TOTAL</td><td>'+shots.length+'</td><td style="color:#ef4444">'+g+'</td><td style="color:#22c55e">'+sv+'</td><td style="color:var(--muted)">'+ot+'</td><td>'+pct+'</td>';tb.appendChild(tr);
+}
+
+function renderDiff(){
+  var shots=filt().filter(function(s){return s.r==="GOAL"||s.r==="SAVE";});var diffs=["Easy","Moderate","Difficult","High Danger"];var d1avg=[82,65,52,38];
+  var pcts=diffs.map(function(d){var ds=shots.filter(function(s){return s.dn===d;});return ds.length>0?ds.filter(function(s){return s.r==="SAVE";}).length/ds.length*100:0;});
+  dk("c-diff");var ctx=document.getElementById("c-diff");if(!ctx)return;
+  CH["c-diff"]=new Chart(ctx.getContext("2d"),{type:"bar",data:{labels:diffs,datasets:[{label:"JMU GK Save%",data:pcts,backgroundColor:"#E57200",borderRadius:4},{label:"NCAA D1 Avg",data:d1avg,backgroundColor:"rgba(35,45,75,.18)",borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:BARFONT}}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,max:100,ticks:{callback:function(v){return v+"%";}},grid:{color:"rgba(0,0,0,.05)"}}}}});
+}
+
+function renderCatCharts(){
+  makeBarSavePct("c-st",["Free Position","Time & Room","On the Run","Quick Stick","Inside Finish","Dodge Finish","Step-Down"],function(s){return s.st;});
+  makeBarSavePct("c-sit",["EV","FP","PP"],function(s){return s.sit;});
+  makeBarSavePct("c-ra",["Overhand","Sidearm","Underhand"],function(s){return s.ra;});
+  makeBarSavePct("c-fz",["Crease","11m Hash","8m Area","Outside"],function(s){var f=s.fz;if(f==="Crease")return"Crease";if(f.indexOf("Hash")>=0||f.indexOf("FP")>=0)return"11m Hash";if(f.indexOf("8m")>=0)return"8m Area";return"Outside";});
+  makeBarSavePct("c-gz",["Low Row","Mid Row","Top Row"],function(s){if(!s.gz||s.gz==="\u2014")return null;if(s.gz.indexOf("TOP")===0)return"Top Row";if(s.gz.indexOf("MID")===0)return"Mid Row";return"Low Row";});
+  var allShots=filt();var stTypes=["Free Position","Time & Room","On the Run","Quick Stick","Inside Finish","Dodge Finish","Step-Down"];
+  var tb=document.querySelector("#t-st tbody");tb.innerHTML="";
+  stTypes.forEach(function(st){var grp=allShots.filter(function(s){return s.st===st;});if(!grp.length)return;var ga=grp.filter(function(s){return s.r==="GOAL";}).length;var sv=grp.filter(function(s){return s.r==="SAVE";}).length;var ot=grp.length-ga-sv;var pct=(ga+sv)>0?(sv/(ga+sv)*100).toFixed(1)+"%":"\u2014";var tr=document.createElement("tr");tr.innerHTML='<td><strong>'+st+'</strong></td><td>'+grp.length+'</td><td style="color:#ef4444">'+ga+'</td><td style="color:#22c55e">'+sv+'</td><td style="color:var(--muted)">'+ot+'</td><td><strong>'+pct+'</strong></td>';tb.appendChild(tr);});
+}
+
+// ═══════════════════════════════════════════════════════ TAB 3
+function renderRadar(){
+  var shots=filt().filter(function(s){return s.r==="GOAL"||s.r==="SAVE";});
+  function sp(fn){var g=shots.filter(fn);return g.length>0?Math.min(100,g.filter(function(s){return s.r==="SAVE";}).length/g.length*100):50;}
+  var jmu=[sp(function(s){return s.sit==="EV";}),sp(function(s){return s.sit==="FP";}),sp(function(s){return s.fz==="Crease";}),sp(function(s){return s.sit==="PP";}),65,sp(function(s){return s.q==="Q3";}),58].map(function(v){return Math.max(0,v);});
+  var d1=[65,55,50,45,65,62,65];
+  dk("c-radar");var ctx=document.getElementById("c-radar");if(!ctx)return;
+  CH["c-radar"]=new Chart(ctx.getContext("2d"),{type:"radar",data:{labels:["EV Stopping","FP Defense","Crease Defense","Man-Up Def","Angle Mgmt","Q3 Perf","Lateral Speed"],datasets:[{label:"JMU GK",data:jmu,borderColor:"#E57200",backgroundColor:"rgba(229,114,0,.15)",pointBackgroundColor:"#E57200",pointRadius:4,borderWidth:2},{label:"NCAA D1 Avg",data:d1,borderColor:"rgba(35,45,75,.5)",backgroundColor:"rgba(35,45,75,.07)",pointBackgroundColor:"#232D4B",pointRadius:3,borderWidth:1.5,borderDash:[4,2]}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{beginAtZero:true,max:100,ticks:{display:false,stepSize:25},grid:{color:"rgba(0,0,0,.08)"},pointLabels:{font:{family:"Barlow Condensed",size:11,weight:"600"},color:"#232D4B"}}},plugins:{legend:{position:"bottom",labels:{font:BARFONT}}}}});
+}
+
+// ═══════════════════════════════════════════════════════ TAB 4
+function renderProg(){
+  var order=["LIB","USF","ECU","UMD","JHU"];var labels=order.map(function(g){return GFULL[g];});
+  var data=order.map(function(g){var gs=SHOTS.filter(function(s){return s.game===g&&(s.r==="GOAL"||s.r==="SAVE");});return gs.length>0?gs.filter(function(s){return s.r==="SAVE";}).length/gs.length*100:0;});
+  dk("c-prog");var ctx=document.getElementById("c-prog");if(!ctx)return;
+  CH["c-prog"]=new Chart(ctx.getContext("2d"),{type:"line",data:{labels:labels,datasets:[{label:"Save%",data:data,borderColor:"#E57200",backgroundColor:"rgba(229,114,0,.1)",pointBackgroundColor:data.map(function(v){return v>=50?"#22c55e":"#ef4444";}),pointRadius:6,borderWidth:2.5,tension:.3,fill:true},{label:"D1 Avg 55%",data:Array(5).fill(55),borderColor:"rgba(35,45,75,.35)",borderDash:[6,3],pointRadius:0,borderWidth:1.5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:BARFONT}}},scales:{x:{grid:{display:false},ticks:{font:BARFONT}},y:{beginAtZero:true,max:100,ticks:{callback:function(v){return v+"%";}},grid:{color:"rgba(0,0,0,.05)"}}}}});
+  var tb=document.querySelector("#t-gbg tbody");if(tb){tb.innerHTML="";
+    order.forEach(function(gm){var gs=SHOTS.filter(function(s){return s.game===gm;});var ga=gs.filter(function(s){return s.r==="GOAL";}).length;var sv=gs.filter(function(s){return s.r==="SAVE";}).length;var ot=gs.length-ga-sv;var pct=(ga+sv)>0?(sv/(ga+sv)*100).toFixed(1)+"%":"\u2014";var tr=document.createElement("tr");tr.innerHTML='<td><strong>'+GFULL[gm]+'</strong></td><td>'+gs.length+'</td><td style="color:#ef4444">'+ga+'</td><td style="color:#22c55e">'+sv+'</td><td style="color:var(--muted)">'+ot+'</td><td><strong>'+pct+'</strong></td>';tb.appendChild(tr);});
+  }
+}
+
+// ═══════════════════════════════════════════════════════ TAB 3 ANALYSIS
+function renderAnalysis(){
+  var shots=filt();
+  var sg=shots.filter(function(s){return s.r==="GOAL"||s.r==="SAVE";});
+  var goals=shots.filter(function(s){return s.r==="GOAL";});
+  var saves=shots.filter(function(s){return s.r==="SAVE";});
+  var svPct=sg.length>0?(saves.length/sg.length*100):0;
+
+  // Helper: save% for a subset
+  function svp(arr){var g=arr.filter(function(s){return s.r==="GOAL";}).length;var sv=arr.filter(function(s){return s.r==="SAVE";}).length;return (g+sv)>0?{pct:sv/(g+sv)*100,sv:sv,g:g,n:g+sv}:{pct:0,sv:0,g:0,n:0};}
+  function dot(c){return '<div class="dot '+(c==="g"?"dg":"dr")+'"></div>';}
+  function swi(color,html){return '<div class="swi">'+dot(color)+'<div>'+html+'</div></div>';}
+
+  // Zone analysis
+  var zones=["Crease","8m Area","11m Hash L","11m Hash R","Outside Wing L","Outside Wing R"];
+  var zoneStats={};zones.forEach(function(z){zoneStats[z]=svp(sg.filter(function(s){return s.fz===z;}));});
+
+  // Goal zone analysis
+  var gzones=["TOP-L","TOP-C","TOP-R","MID-L","MID-C","MID-R","LOW-L","LOW-C","LOW-R"];
+  var gzStats={};gzones.forEach(function(gz){var gs=goals.filter(function(s){return s.gz===gz;});gzStats[gz]=gs.length;});
+
+  // Situation analysis
+  var evStat=svp(sg.filter(function(s){return s.sit==="EV";}));
+  var fpStat=svp(sg.filter(function(s){return s.sit==="FP";}));
+  var ppStat=svp(sg.filter(function(s){return s.sit==="PP";}));
+
+  // Shot type analysis
+  var stypes=["Time & Room","Free Position","Dodge Finish","Quick Stick","Inside Finish","On the Run","Step-Down"];
+  var stStats={};stypes.forEach(function(st){stStats[st]=svp(sg.filter(function(s){return s.st===st;}));});
+
+  // Quarter analysis
+  var qStats={};["Q1","Q2","Q3","Q4"].forEach(function(q){qStats[q]=svp(sg.filter(function(s){return s.q===q;}));});
+
+  // Release angle analysis
+  var raStats={};["Overhand","Sidearm","Underhand"].forEach(function(ra){raStats[ra]=svp(sg.filter(function(s){return s.ra===ra;}));});
+
+  // ─── STRENGTHS ───
+  var str="";
+  // Best field zone
+  var bestZone=null,bestZpct=0;zones.forEach(function(z){if(zoneStats[z].n>=3&&zoneStats[z].pct>bestZpct){bestZpct=zoneStats[z].pct;bestZone=z;}});
+  if(bestZone)str+=swi("g","<strong>Strong "+bestZone+" defense ("+bestZpct.toFixed(0)+"% save rate)</strong> &mdash; Saved "+zoneStats[bestZone].sv+" of "+(zoneStats[bestZone].sv+zoneStats[bestZone].g)+" on-target shots from the "+bestZone.toLowerCase());
+
+  // Best shot type defense
+  var bestST=null,bestSTpct=0;stypes.forEach(function(st){if(stStats[st].n>=3&&stStats[st].pct>bestSTpct){bestSTpct=stStats[st].pct;bestST=st;}});
+  if(bestST)str+=swi("g","<strong>Handles "+bestST+" well ("+bestSTpct.toFixed(0)+"% save rate)</strong> &mdash; "+stStats[bestST].sv+" saves on "+stStats[bestST].n+" "+bestST.toLowerCase()+" shots faced");
+
+  // Best quarter
+  var bestQ=null,bestQpct=0;["Q1","Q2","Q3","Q4"].forEach(function(q){if(qStats[q].n>=3&&qStats[q].pct>bestQpct){bestQpct=qStats[q].pct;bestQ=q;}});
+  if(bestQ)str+=swi("g","<strong>Strongest in "+bestQ+" ("+bestQpct.toFixed(0)+"% save rate)</strong> &mdash; Most composed early in that period, saved "+qStats[bestQ].sv+" of "+qStats[bestQ].n+" on-target shots");
+
+  // Sidearm defense
+  if(raStats["Sidearm"]&&raStats["Sidearm"].n>=2&&raStats["Sidearm"].pct>=60)str+=swi("g","<strong>Reads sidearm releases well ("+raStats["Sidearm"].pct.toFixed(0)+"% save rate)</strong> &mdash; Good lateral positioning against sidearm shooters");
+
+  // Situation strength
+  if(evStat.n>=5&&evStat.pct>=55)str+=swi("g","<strong>Solid even-strength defense ("+evStat.pct.toFixed(0)+"% save rate)</strong> &mdash; "+evStat.sv+" saves on "+evStat.n+" on-target EV shots across all games");
+  if(fpStat.n>=3&&fpStat.pct>=55)str+=swi("g","<strong>Holds up on free positions ("+fpStat.pct.toFixed(0)+"% save rate)</strong> &mdash; Not easily beaten in set-piece situations");
+
+  if(!str)str=swi("g","<strong>No clear standout strengths</strong> &mdash; Save rate is below average across most categories");
+  document.getElementById("analysis-strengths").innerHTML=str;
+
+  // ─── VULNERABILITIES ───
+  var vul="";
+  // Worst field zone (min 3 shots)
+  var worstZone=null,worstZpct=100;zones.forEach(function(z){if(zoneStats[z].n>=3&&zoneStats[z].pct<worstZpct){worstZpct=zoneStats[z].pct;worstZone=z;}});
+  if(worstZone&&worstZpct<60)vul+=swi("r","<strong>Vulnerable from "+worstZone+" ("+worstZpct.toFixed(0)+"% save rate)</strong> &mdash; Allowed "+zoneStats[worstZone].g+" goals on "+(zoneStats[worstZone].n)+" on-target shots from this zone");
+
+  // Worst shot type
+  var worstST=null,worstSTpct=100;stypes.forEach(function(st){if(stStats[st].n>=3&&stStats[st].pct<worstSTpct){worstSTpct=stStats[st].pct;worstST=st;}});
+  if(worstST&&worstSTpct<55)vul+=swi("r","<strong>Struggles vs "+worstST+" ("+worstSTpct.toFixed(0)+"% save rate)</strong> &mdash; Only "+stStats[worstST].sv+" saves on "+stStats[worstST].n+" "+worstST.toLowerCase()+" shots");
+
+  // Most scored-on goal zone
+  var worstGZ=null,worstGZn=0;gzones.forEach(function(gz){if(gzStats[gz]>worstGZn){worstGZn=gzStats[gz];worstGZ=gz;}});
+  if(worstGZ&&worstGZn>=3){var lbl=worstGZ.replace("-"," ").toLowerCase();vul+=swi("r","<strong>Most goals scored "+lbl+" ("+worstGZn+" goals)</strong> &mdash; Shooters are finding the "+lbl+" portion of the cage most frequently");}
+
+  // Second most scored-on goal zone
+  var secGZ=null,secGZn=0;gzones.forEach(function(gz){if(gz!==worstGZ&&gzStats[gz]>secGZn){secGZn=gzStats[gz];secGZ=gz;}});
+  if(secGZ&&secGZn>=3){var lbl2=secGZ.replace("-"," ").toLowerCase();vul+=swi("r","<strong>Also exposed "+lbl2+" ("+secGZn+" goals)</strong> &mdash; Secondary target zone for opponents");}
+
+  // Worst quarter
+  var worstQ=null,worstQpct=100;["Q1","Q2","Q3","Q4"].forEach(function(q){if(qStats[q].n>=3&&qStats[q].pct<worstQpct){worstQpct=qStats[q].pct;worstQ=q;}});
+  if(worstQ&&worstQpct<55)vul+=swi("r","<strong>Weakest in "+worstQ+" ("+worstQpct.toFixed(0)+"% save rate)</strong> &mdash; Performance drops off, allowed "+qStats[worstQ].g+" goals on "+qStats[worstQ].n+" on-target shots");
+
+  // FP vulnerability
+  if(fpStat.n>=3&&fpStat.pct<50)vul+=swi("r","<strong>Free position liability ("+fpStat.pct.toFixed(0)+"% save rate)</strong> &mdash; Converted on "+fpStat.g+" of "+fpStat.n+" free position attempts");
+
+  if(!vul)vul=swi("r","<strong>No severe vulnerabilities detected</strong> &mdash; GK maintains decent save rates across most categories");
+  document.getElementById("analysis-vulns").innerHTML=vul;
+
+  // ─── KEY PATTERNS ───
+  var pat="";
+
+  // Pattern: High danger crease shots
+  var crease=svp(sg.filter(function(s){return s.fz==="Crease";}));
+  if(crease.n>=3)pat+='<div class="pc"><div class="pt">&#127919; Crease Defense</div><div class="pb">Faces '+crease.n+' on-target crease shots with a '+crease.pct.toFixed(0)+'% save rate. '+(crease.pct<50?'Crease shots are highly effective — prioritize inside finishes and quick sticks from the doorstep.':'Manages close-range danger reasonably well, but still concedes '+crease.g+' goals from the crease.')+'</div></div>';
+
+  // Pattern: Free position tendency
+  if(fpStat.n>=2)pat+='<div class="pc"><div class="pt">&#9889; Free Position Defense</div><div class="pb">'+fpStat.pct.toFixed(0)+'% save rate on '+fpStat.n+' free position shots. '+(fpStat.pct>=55?'Decent FP defense — may be harder to beat from the set piece.':'Below-average FP defense — exploit free positions with placement shots to the '+((gzStats["TOP-L"]||0)+(gzStats["TOP-C"]||0)+(gzStats["TOP-R"]||0)>(gzStats["LOW-L"]||0)+(gzStats["LOW-C"]||0)+(gzStats["LOW-R"]||0)?'top shelf':'low corners')+'.')+'</div></div>';
+
+  // Pattern: Overhand vs Sidearm
+  if(raStats["Overhand"]&&raStats["Sidearm"]&&raStats["Overhand"].n>=5&&raStats["Sidearm"].n>=3){
+    var diff=raStats["Sidearm"].pct-raStats["Overhand"].pct;
+    pat+='<div class="pc"><div class="pt">&#128170; Release Angle Effect</div><div class="pb">Save rate: Overhand '+raStats["Overhand"].pct.toFixed(0)+'% ('+raStats["Overhand"].n+' shots) vs Sidearm '+raStats["Sidearm"].pct.toFixed(0)+'% ('+raStats["Sidearm"].n+' shots). '+(diff<-10?'Sidearm releases give the GK more trouble — consider sidearm finishes.':'GK reads both release angles similarly.')+'</div></div>';
+  }
+
+  // Pattern: Goal distribution top vs bottom
+  var topG=(gzStats["TOP-L"]||0)+(gzStats["TOP-C"]||0)+(gzStats["TOP-R"]||0);
+  var midG=(gzStats["MID-L"]||0)+(gzStats["MID-C"]||0)+(gzStats["MID-R"]||0);
+  var lowG=(gzStats["LOW-L"]||0)+(gzStats["LOW-C"]||0)+(gzStats["LOW-R"]||0);
+  pat+='<div class="pc"><div class="pt">&#128200; Goal Distribution by Height</div><div class="pb">Goals by cage level — Top shelf: '+topG+', Mid-cage: '+midG+', Low: '+lowG+'. '+(topG>midG&&topG>lowG?'Top shelf is the primary scoring zone — GK may struggle with high shots.':lowG>topG&&lowG>midG?'Low shots are most effective — GK has trouble getting down quickly.':'Mid-cage goals are most common — GK may be giving up the middle too readily.')+'</div></div>';
+
+  document.getElementById("analysis-patterns").innerHTML=pat;
+
+  // ─── SCOUTING REPORT ───
+  var rep="";
+
+  // Shot type vulnerability ranking
+  var stRanked=stypes.filter(function(st){return stStats[st].n>=2;}).sort(function(a,b){return stStats[a].pct-stStats[b].pct;});
+  if(stRanked.length>=2){
+    rep+='<div class="pc"><div class="pt">&#128308; Shot Type Threat Ranking</div><div class="pb">';
+    stRanked.forEach(function(st,i){rep+=(i+1)+'. '+st+' — '+stStats[st].pct.toFixed(0)+'% save rate ('+stStats[st].g+'G/'+stStats[st].n+' OT)'+(i<stRanked.length-1?'<br>':'');});
+    rep+='</div></div>';
+  }
+
+  // Zone vulnerability ranking
+  var zRanked=zones.filter(function(z){return zoneStats[z].n>=2;}).sort(function(a,b){return zoneStats[a].pct-zoneStats[b].pct;});
+  if(zRanked.length>=2){
+    rep+='<div class="pc"><div class="pt">&#9888;&#65039; Field Zone Threat Ranking</div><div class="pb">';
+    zRanked.forEach(function(z,i){rep+=(i+1)+'. '+z+' — '+zoneStats[z].pct.toFixed(0)+'% save rate ('+zoneStats[z].g+'G/'+zoneStats[z].n+' OT)'+(i<zRanked.length-1?'<br>':'');});
+    rep+='</div></div>';
+  }
+
+  // Recommended attack plan
+  rep+='<div class="pc"><div class="pt">&#128161; Recommended Attack Plan</div><div class="pb">';
+  var recs=[];
+  if(worstZone&&worstZpct<60)recs.push('Attack from the '+worstZone.toLowerCase()+' (only '+worstZpct.toFixed(0)+'% save rate)');
+  if(worstST&&worstSTpct<55)recs.push('Use '+worstST.toLowerCase()+' shots ('+worstSTpct.toFixed(0)+'% save rate)');
+  if(worstGZ){var wlbl=worstGZ.replace("-"," ").toLowerCase();recs.push('Target the '+wlbl+' of the cage ('+worstGZn+' goals scored there)');}
+  if(worstQ&&worstQpct<55)recs.push('Push tempo in '+worstQ+' when save rate drops to '+worstQpct.toFixed(0)+'%');
+  if(fpStat.n>=2&&fpStat.pct<50)recs.push('Draw fouls to earn free positions ('+fpStat.pct.toFixed(0)+'% save rate)');
+  if(recs.length===0)recs.push('Overall save rate is '+svPct.toFixed(1)+'% — look for situational mismatches');
+  rep+=recs.join('<br>')+' </div></div>';
+
+  document.getElementById("analysis-report").innerHTML=rep;
+}
+
+// ═══════════════════════════════════════════════════════ MASTER RENDER
+function renderTab(tabId){
+  if(tabId==="t1"){renderField();renderHeatmaps();renderScatter();renderTable();}
+  if(tabId==="t2"){renderDonut();renderXSave();renderQTable();renderDiff();renderCatCharts();}
+  if(tabId==="t3"){renderRadar();renderAnalysis();}
+  if(tabId==="t4"){renderProg();}
+}
+function renderAll(){updHdr();updKPI();var active=document.querySelector(".tp.on");if(active)renderTab(active.id);}
+
+// ═══════════════════════════════════════════════════════ CLEAR SELECTION
+function clearSelection(){
+  document.getElementById("dp").style.display="none";
+  if(selRow){selRow.classList.remove("sel");selRow=null;}
+  selShot=null;hideTip();renderField();renderHeatmaps();renderScatter();
+}
+
+// ═══════════════════════════════════════════════════════ EVENTS
+document.querySelectorAll(".tb").forEach(function(b){b.addEventListener("click",function(){document.querySelectorAll(".tb").forEach(function(x){x.classList.remove("on");});document.querySelectorAll(".tp").forEach(function(x){x.classList.remove("on");});b.classList.add("on");var tab=b.dataset.tab;document.getElementById(tab).classList.add("on");setTimeout(function(){renderTab(tab);},30);});});
+document.querySelectorAll("[data-f]").forEach(function(chip){chip.addEventListener("click",function(){var f=chip.dataset.f,v=chip.dataset.v;document.querySelectorAll('[data-f="'+f+'"]').forEach(function(c){c.classList.remove("on");});chip.classList.add("on");ST[f]=v;selRow=null;document.getElementById("dp").style.display="none";renderAll();});});
+document.getElementById("gsel").addEventListener("change",function(e){ST.game=e.target.value;selRow=null;document.getElementById("dp").style.display="none";renderAll();});
+document.getElementById("dp-x").addEventListener("click",function(){clearSelection();});
+// Click SVG background to deselect
+document.getElementById("fsvg").addEventListener("click",function(e){if(e.target.tagName==="rect"||e.target.tagName==="svg")clearSelection();});
+var scatSvg=document.querySelector("#sdots").closest("svg");if(scatSvg)scatSvg.addEventListener("click",function(e){if(e.target.tagName==="rect"||e.target.tagName==="svg")clearSelection();});
+
+// ═══════════════════════════════════════════════════════ INIT
+renderAll();
+</script>
+</body>
+</html>
